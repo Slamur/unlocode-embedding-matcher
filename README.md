@@ -6,8 +6,14 @@ Exercise to get familiar with embedding search.
 
 ### Python + venv
 
-```py
+```sh
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
+
+### Download UN/LOCODE raw data
+
+```sh
+python ./scripts/download_unlocode.py
 ```
