@@ -26,6 +26,10 @@ def _download_zip(url: str = URL, destination_dir: Path = RAW_DIR) -> Path:
 
     destination = destination_dir / ZIP_FILENAME
 
+    if destination.exists():
+        print(f"File {destination} already exists. Skipping download.")
+        return destination
+
     with requests.get(url, stream=True) as response:
         response.raise_for_status()
 
