@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 from pathlib import Path
 
+import re
 import pandas as pd
 
 from src.config.paths import RAW_DIR
@@ -170,20 +171,13 @@ class _AliasesResolver:
 
     @staticmethod
     def _build_aliases_df(merged_df: pd.DataFrame) -> pd.DataFrame:
-        aliases = merged_df[["locode", "name", "name_wo_diacritics"]].copy()
+        aliases_df = merged_df[["locode", "name", "name_wo_diacritics"]].copy()
 
-        return aliases
+        return aliases_df
 
     @staticmethod
     def _prepare_aliases_df(aliases_df: pd.DataFrame) -> pd.DataFrame:
         prepared_aliases_df = aliases_df.copy()
-
-        prepared_aliases_df = prepared_aliases_df.rename(
-            columns={
-                "name": "alias",
-                "name_wo_diacritics": "alias_ascii",
-            }
-        )
 
         return prepared_aliases_df
 
@@ -199,6 +193,89 @@ class _AliasesResolver:
         _print_df_info(prepared_aliases_df, "Prepared Aliases DataFrame", verbose=verbose)
 
         return prepared_aliases_df
+    
+
+class _AliasesSplitter:
+
+    PARENTHESIZED_NAME_PATTERN = re.compile(r"^\s*(.*?)\s*\((.*?)\)\s*$")
+
+    @staticmethod
+    def _split_parenthesized_name_with_labels(name: str) -> list[tuple[str, str]]:
+        name = name.strip()
+        if not name:
+            return []
+
+        result: list[tuple[str, str]] = [(name, "full")]
+
+        match = _AliasesSplitter.PARENTHESIZED_NAME_PATTERN.match(name)
+        if not match:
+            return result
+
+        left = match.group(1).strip()
+        inner = match.group(2).strip()
+
+        if left:
+            result.append((left, "paren_left"))
+
+        if inner:
+            result.append((inner, "paren_inner"))
+
+        return result
+
+    @staticmethod
+    def _build_splitted_rows(aliases_df: pd.DataFrame) -> list[tuple[str, str, str, str]]:
+        splitted_rows: list[tuple[str, str, str, str]] = []
+
+        def add_rows_for(locode: str, source_field: str, field_value: str) -> None:
+            for alias_text, alias_kind in _AliasesSplitter._split_parenthesized_name_with_labels(field_value):
+                splitted_rows.append((locode, source_field, alias_text, alias_kind))
+
+        for locode, name, name_wo_diacritics in aliases_df.itertuples(index=False, name=None):
+            add_rows_for(locode, "name", name)
+            add_rows_for(locode, "name_wo_diacritics", name_wo_diacritics)
+
+        return splitted_rows
+    
+    @staticmethod
+    def _split_parenthesized_aliases(aliases_df: pd.DataFrame) -> pd.DataFrame:
+        splitted_rows = _AliasesSplitter._build_splitted_rows(aliases_df)
+
+        splitted_aliases_df = pd.DataFrame(
+            splitted_rows,
+            columns=["locode", "source_field", "alias_text", "alias_kind"],
+        )
+
+        return splitted_aliases_df
+
+    @staticmethod
+    def _prepare_aliases_df(splitted_aliases_df: pd.DataFrame) -> pd.DataFrame:
+        prepared_aliases_df = splitted_aliases_df.copy()
+
+        # strip names
+        prepared_aliases_df["alias_text"] = prepared_aliases_df["alias_text"].str.strip()
+
+        # remove empty names
+        prepared_aliases_df = prepared_aliases_df[prepared_aliases_df["alias_text"] != ""].copy()
+
+        # remove duplicates
+        prepared_aliases_df = prepared_aliases_df.drop_duplicates(
+            subset=["locode", "source_field", "alias_text", "alias_kind"]
+        ).reset_index(drop=True)
+
+        return prepared_aliases_df
+
+    @staticmethod
+    def split_aliases(aliases_df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
+
+        splitted_aliases_df = _AliasesSplitter._split_parenthesized_aliases(aliases_df)
+
+        _print_df_info(splitted_aliases_df, "Splitted Aliases DataFrame", verbose=verbose)
+
+        prepared_splitted_aliases_df = _AliasesSplitter._prepare_aliases_df(splitted_aliases_df)
+
+        _print_df_info(prepared_splitted_aliases_df, "Prepared Splitted Aliases DataFrame", verbose=verbose)
+
+        return prepared_splitted_aliases_df
 
 
 class _LocationsResolver:
@@ -239,8 +316,16 @@ def main() -> None:
 
     merged_df = _DataMerger.merge_and_prepare(codes_df, subdivisions_df)
 
-    aliases_df = _AliasesResolver.resolve_aliases(merged_df)
     locations_df = _LocationsResolver.resolve_locations(merged_df)
+
+    aliases_df = _AliasesResolver.resolve_aliases(merged_df, verbose=True)
+    splitted_aliases_df = _AliasesSplitter.split_aliases(aliases_df, verbose=True)
+
+    print("\nAliases for BEBRU:")
+    print(aliases_df[aliases_df["locode"] == "BEBRU"].to_string())
+
+    print("\nSplitted Aliases for BEBRU:")
+    print(splitted_aliases_df[splitted_aliases_df["locode"] == "BEBRU"].to_string())
 
 
 if __name__ == "__main__":
