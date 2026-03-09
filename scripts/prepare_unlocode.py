@@ -133,16 +133,37 @@ class _SubdivisionsPreparer:
         return prepared_subdivisions_df
 
 
-def _merge_codes_with_subdivisions(codes_df: pd.DataFrame, subdivisions_df: pd.DataFrame) -> pd.DataFrame:
-    merged_df = codes_df.merge(
-        subdivisions_df,
-        how="left",
-        left_on=["country", "subdivision"],
-        right_on=["country", "subdivision_code"],
-        suffixes=("", "_subdiv"),
-    )
+class _DataMerger:
 
-    return merged_df
+    @staticmethod
+    def _merge_codes_with_subdivisions(codes_df: pd.DataFrame, subdivisions_df: pd.DataFrame) -> pd.DataFrame:
+        merged_df = codes_df.merge(
+            subdivisions_df,
+            how="left",
+            left_on=["country", "subdivision"],
+            right_on=["country", "subdivision_code"],
+            suffixes=("", "_subdiv"),
+        )
+
+        return merged_df
+    
+    @staticmethod
+    def _prepare_merged_df(merged_df: pd.DataFrame) -> pd.DataFrame:
+        prepared_merged_df = merged_df.copy()
+
+        for col in ["subdivision_code", "subdivision_name", "subdivision_type"]:
+            prepared_merged_df[col] = prepared_merged_df[col].fillna("")
+
+        return prepared_merged_df
+    
+    @staticmethod
+    def merge_and_prepare(codes_df: pd.DataFrame, subdivisions_df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
+        merged_df = _DataMerger._merge_codes_with_subdivisions(codes_df, subdivisions_df)
+        prepared_merged_df = _DataMerger._prepare_merged_df(merged_df)
+
+        _print_df_info(merged_df, "Merged DataFrame", verbose=verbose)
+
+        return prepared_merged_df
 
 
 def main() -> None:
@@ -150,12 +171,7 @@ def main() -> None:
     prepared_codes_df = _CodesPreparer.read_prepared_codes_df()
     prepared_subdivisions_df = _SubdivisionsPreparer.read_prepared_subdivisions_df()
 
-    merged_df = _merge_codes_with_subdivisions(prepared_codes_df, prepared_subdivisions_df)
-
-    _print_df_info(merged_df, "Merged DataFrame", verbose=True)
-
-    print("Unique locodes:", merged_df["locode"].nunique())
-    print("Rows:", len(merged_df))
+    prepared_merged_df = _DataMerger.merge_and_prepare(prepared_codes_df, prepared_subdivisions_df)
 
 
 if __name__ == "__main__":
