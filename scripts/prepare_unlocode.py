@@ -1,10 +1,7 @@
-from collections.abc import Sequence
-from pathlib import Path
-
 import re
 import pandas as pd
 
-from src.config.paths import INTERIM_DIR
+from src.config.paths import INTERIM_DIR, PROCESSED_DIR
 from src.dataset.utils import print_df_info
 
 class _AliasesResolver:
@@ -89,7 +86,7 @@ class _AliasesSplitter:
 
     @staticmethod
     def _prepare_aliases_df(splitted_aliases_df: pd.DataFrame) -> pd.DataFrame:
-        prepared_aliases_df = splitted_aliases_df.copy()
+        prepared_aliases_df = splitted_aliases_df[["locode", "alias_text"]].copy()
 
         # strip names
         prepared_aliases_df["alias_text"] = prepared_aliases_df["alias_text"].str.strip()
@@ -99,7 +96,7 @@ class _AliasesSplitter:
 
         # remove duplicates
         prepared_aliases_df = prepared_aliases_df.drop_duplicates(
-            subset=["locode", "source_field", "alias_text", "alias_kind"]
+            subset=["locode", "alias_text"]
         ).reset_index(drop=True)
 
         return prepared_aliases_df
@@ -164,6 +161,15 @@ def main() -> None:
 
     print("\nSplitted Aliases for BEBRU:")
     print(splitted_aliases_df[splitted_aliases_df["locode"] == "BEBRU"].to_string())
+
+    locations_path = PROCESSED_DIR / "unlocode_locations.parquet"
+    aliases_path = PROCESSED_DIR / "unlocode_aliases.parquet"
+
+    locations_df.to_parquet(locations_path, index=False)
+    splitted_aliases_df.to_parquet(aliases_path, index=False)
+
+    print(f"Saved locations to: {locations_path}")
+    print(f"Saved aliases to: {aliases_path}")
 
 
 if __name__ == "__main__":
