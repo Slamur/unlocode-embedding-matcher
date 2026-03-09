@@ -21,4 +21,5 @@ PROJECT_ROOT = _find_project_root(Path(__file__).resolve())
 
 DATA_DIR = _get_existing_dir_path(PROJECT_ROOT / "data")
 RAW_DIR = _get_existing_dir_path(DATA_DIR / "raw")
+INTERIM_DIR = _get_existing_dir_path(DATA_DIR / "interim")
 PROCESSED_DIR = _get_existing_dir_path(DATA_DIR / "processed")
