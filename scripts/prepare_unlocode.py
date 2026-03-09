@@ -166,12 +166,81 @@ class _DataMerger:
         return prepared_merged_df
 
 
+class _AliasesResolver:
+
+    @staticmethod
+    def _build_aliases_df(merged_df: pd.DataFrame) -> pd.DataFrame:
+        aliases = merged_df[["locode", "name", "name_wo_diacritics"]].copy()
+
+        return aliases
+
+    @staticmethod
+    def _prepare_aliases_df(aliases_df: pd.DataFrame) -> pd.DataFrame:
+        prepared_aliases_df = aliases_df.copy()
+
+        prepared_aliases_df = prepared_aliases_df.rename(
+            columns={
+                "name": "alias",
+                "name_wo_diacritics": "alias_ascii",
+            }
+        )
+
+        return prepared_aliases_df
+
+    @staticmethod
+    def resolve_aliases(merged_df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
+
+        aliases_df = _AliasesResolver._build_aliases_df(merged_df)
+
+        _print_df_info(aliases_df, "Aliases DataFrame", verbose=verbose)
+
+        prepared_aliases_df = _AliasesResolver._prepare_aliases_df(aliases_df)
+
+        _print_df_info(prepared_aliases_df, "Prepared Aliases DataFrame", verbose=verbose)
+
+        return prepared_aliases_df
+
+
+class _LocationsResolver:
+
+    @staticmethod
+    def _build_locations_df(merged_df: pd.DataFrame) -> pd.DataFrame:
+        locations_df = merged_df.drop(columns=["name", "name_wo_diacritics"]).copy()
+
+        return locations_df
+
+    @staticmethod
+    def _prepare_locations_df(locations_df: pd.DataFrame) -> pd.DataFrame:
+        prepared_locations_df = locations_df.copy()
+
+        # remove full locode duplicates
+        prepared_locations_df = prepared_locations_df.drop_duplicates(subset=["locode"])
+
+        return prepared_locations_df
+
+    @staticmethod
+    def resolve_locations(merged_df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
+        locations_df = _LocationsResolver._build_locations_df(merged_df)
+
+        _print_df_info(locations_df, "Locations DataFrame", verbose=verbose)
+
+        prepared_locations_df = _LocationsResolver._prepare_locations_df(locations_df)
+
+        _print_df_info(prepared_locations_df, "Prepared Locations DataFrame", verbose=verbose)
+
+        return prepared_locations_df
+
+
+
 def main() -> None:
 
-    prepared_codes_df = _CodesPreparer.read_prepared_codes_df()
-    prepared_subdivisions_df = _SubdivisionsPreparer.read_prepared_subdivisions_df()
+    codes_df = _CodesPreparer.read_prepared_codes_df()
+    subdivisions_df = _SubdivisionsPreparer.read_prepared_subdivisions_df()
 
-    prepared_merged_df = _DataMerger.merge_and_prepare(prepared_codes_df, prepared_subdivisions_df)
+    merged_df = _DataMerger.merge_and_prepare(codes_df, subdivisions_df)
+
+    aliases_df = _AliasesResolver.resolve_aliases(merged_df)
+    locations_df = _LocationsResolver.resolve_locations(merged_df)
 
 
 if __name__ == "__main__":
