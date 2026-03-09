@@ -21,6 +21,6 @@ python  -m scripts.download_unlocode
 ### Prepare UN/LOCODE parquet files
 
 ```sh
-python  -m scripts.ingest_unlocode
+python -m scripts.ingest_unlocode
 python -m scripts.prepare_unlocode
 ```
