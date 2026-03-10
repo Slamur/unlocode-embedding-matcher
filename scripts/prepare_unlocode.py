@@ -7,6 +7,9 @@ from src.dataset.prepare.aliases import resolve_aliases
 def main() -> None:
 
     merged_codes_path = INTERIM_DIR / "merged_codes.parquet"
+    if not merged_codes_path.exists():
+        raise FileNotFoundError(f"Expected merged codes file not found at: {merged_codes_path}")
+    
     merged_codes = pd.read_parquet(merged_codes_path)
 
     locations = resolve_locations(merged_codes=merged_codes)
