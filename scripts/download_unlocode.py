@@ -1,9 +1,5 @@
-
-import zipfile
-from pathlib import Path
-
 from src.config.paths import RAW_DIR
-from src.dataset.io.download import download_zip
+from src.dataset.io.download import download
 from src.dataset.io.zip import unzip
 
 
