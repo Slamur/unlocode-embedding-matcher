@@ -28,7 +28,7 @@ def _prepare_merged_codes(
     return prepared_merged_codes
 
 
-def merge_and_prepare(
+def build_merged_table(
     codes: pd.DataFrame, 
     subdivisions: pd.DataFrame, 
     verbose: bool = False,

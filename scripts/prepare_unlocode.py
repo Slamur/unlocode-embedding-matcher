@@ -1,8 +1,8 @@
 import pandas as pd
 
 from src.config.paths import INTERIM_DIR, PROCESSED_DIR
-from src.dataset.prepare.locations import resolve_locations
-from src.dataset.prepare.aliases import resolve_aliases
+from src.dataset.prepare.locations import build_locations_table
+from src.dataset.prepare.aliases import build_aliases_table
 
 def main() -> None:
 
@@ -12,8 +12,8 @@ def main() -> None:
     
     merged_codes = pd.read_parquet(merged_codes_path)
 
-    locations = resolve_locations(merged_codes=merged_codes)
-    aliases = resolve_aliases(merged_codes=merged_codes)
+    locations = build_locations_table(merged_codes=merged_codes)
+    aliases = build_aliases_table(merged_codes=merged_codes)
 
     locations_path = PROCESSED_DIR / "unlocode_locations.parquet"
     aliases_path = PROCESSED_DIR / "unlocode_aliases.parquet"

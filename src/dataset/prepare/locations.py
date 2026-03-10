@@ -22,7 +22,7 @@ def _prepare_locations(
     return prepared_locations
 
 
-def resolve_locations(
+def build_locations_table(
     merged_codes: pd.DataFrame, 
     verbose: bool = False,
 ) -> pd.DataFrame:

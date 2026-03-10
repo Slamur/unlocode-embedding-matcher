@@ -1,15 +1,15 @@
 from src.config.paths import RAW_DIR, INTERIM_DIR
-from src.dataset.ingest.codes import read_prepared_codes
-from src.dataset.ingest.subdivisions import read_prepared_subdivisions
-from src.dataset.ingest.merge import merge_and_prepare
+from src.dataset.ingest.codes import read_codes_table
+from src.dataset.ingest.subdivisions import read_subdivisions_table
+from src.dataset.ingest.merge import build_merged_table
 
 
 def main() -> None:
 
-    codes = read_prepared_codes(csv_dir=RAW_DIR, filename_substring="CodeListPart")
-    subdivisions = read_prepared_subdivisions(csv_dir=RAW_DIR, filename_substring="Subdivision")
+    codes = read_codes_table(csv_dir=RAW_DIR, filename_substring="CodeListPart")
+    subdivisions = read_subdivisions_table(csv_dir=RAW_DIR, filename_substring="Subdivision")
 
-    merged_codes = merge_and_prepare(codes=codes, subdivisions=subdivisions)
+    merged_codes = build_merged_table(codes=codes, subdivisions=subdivisions)
 
     merged_codes_path = INTERIM_DIR / "merged_codes.parquet"
     merged_codes.to_parquet(merged_codes_path, index=False)

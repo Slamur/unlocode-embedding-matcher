@@ -19,8 +19,6 @@ def _read_subdivisions(
     filename_substring: str,
 ) -> pd.DataFrame:
     subdivision_files = find_csv_files(directory=csv_dir, filename_substring=filename_substring)
-    if not subdivision_files:
-        raise RuntimeError(f"No subdivision CSV found in {csv_dir}")
 
     return read_csv_file(path=subdivision_files[0], column_names=SUBDIVISION_COLUMNS)
 
@@ -37,7 +35,7 @@ def _prepare_subdivisions(
     return prepared_subdivisions
 
 
-def read_prepared_subdivisions(
+def read_subdivisions_table(
     csv_dir: Path,
     filename_substring: str,
     verbose: bool = False,

@@ -51,7 +51,7 @@ def _prepare_codes(
     return prepared_codes
 
 
-def read_prepared_codes(
+def read_codes_table(
     csv_dir: Path, 
     filename_substring: str, 
     verbose: bool = False,
