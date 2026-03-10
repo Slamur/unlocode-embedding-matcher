@@ -4,23 +4,14 @@ Exercise to get familiar with embedding search.
 
 ## Initialization
 
-### Python + venv
+### Python + venv (development)
 
 ```sh
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+make install-dev
 ```
 
-### Download UN/LOCODE raw data
+### Download and prepare UN/LOCODE dataset
 
 ```sh
-python  -m scripts.download_unlocode
-```
-
-### Prepare UN/LOCODE parquet files
-
-```sh
-python -m scripts.ingest_unlocode
-python -m scripts.prepare_unlocode
+make build-dataset
 ```

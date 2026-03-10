@@ -1,6 +1,6 @@
 import re
-import pandas as pd
 
+import pandas as pd
 
 _PARENTHESIZED_NAME_PATTERN = re.compile(r"^\s*(.*?)\s*\((.*?)\)\s*$")
 

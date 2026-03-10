@@ -1,8 +1,9 @@
 import zipfile
 from pathlib import Path
 
+
 def unzip(
-    source: Path, 
+    source: Path,
     dest: Path,
 ) -> None:
     print(f"Extracting dataset from {source} to {dest}")

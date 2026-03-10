@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 ROOT_FILES = ["requirements.txt", ".git"]
 
 

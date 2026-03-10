@@ -5,7 +5,6 @@ import pandas as pd
 from src.dataset.inspect import inspect_df_info
 from src.dataset.io.csv import find_csv_files, read_csv_file
 
-
 _UNLOCODE_COLUMNS = [
     "change",
     "country",
@@ -23,10 +22,12 @@ _UNLOCODE_COLUMNS = [
 
 
 def _read_codes(
-    csv_dir: Path, 
+    csv_dir: Path,
     filename_substring: str,
 ) -> pd.DataFrame:
-    part_files = find_csv_files(directory=csv_dir, filename_substring=filename_substring, fail_on_empty=True)
+    part_files = find_csv_files(
+        directory=csv_dir, filename_substring=filename_substring, fail_on_empty=True
+    )
 
     parts = [read_csv_file(path=path, column_names=_UNLOCODE_COLUMNS) for path in part_files]
     return pd.concat(parts, ignore_index=True)
@@ -42,7 +43,9 @@ def _prepare_codes(
         prepared_codes[col] = prepared_codes[col].str.strip()
 
     # filter columns without country and/or code
-    prepared_codes = prepared_codes[(prepared_codes["country"] != "") & (prepared_codes["code"] != "")].copy()
+    prepared_codes = prepared_codes[
+        (prepared_codes["country"] != "") & (prepared_codes["code"] != "")
+    ].copy()
 
     # generate locode columns
     prepared_codes["locode"] = prepared_codes["country"] + prepared_codes["code"]
@@ -52,8 +55,8 @@ def _prepare_codes(
 
 
 def read_codes_table(
-    csv_dir: Path, 
-    filename_substring: str, 
+    csv_dir: Path,
+    filename_substring: str,
     verbose: bool = False,
 ) -> pd.DataFrame:
     codes = _read_codes(csv_dir=csv_dir, filename_substring=filename_substring)

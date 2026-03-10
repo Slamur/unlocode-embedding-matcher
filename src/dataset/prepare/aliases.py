@@ -45,7 +45,7 @@ def _prepare_aliases(
 
 
 def build_aliases_table(
-    merged_codes: pd.DataFrame, 
+    merged_codes: pd.DataFrame,
     verbose: bool = False,
 ) -> pd.DataFrame:
 

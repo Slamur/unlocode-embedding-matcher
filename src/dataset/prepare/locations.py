@@ -23,7 +23,7 @@ def _prepare_locations(
 
 
 def build_locations_table(
-    merged_codes: pd.DataFrame, 
+    merged_codes: pd.DataFrame,
     verbose: bool = False,
 ) -> pd.DataFrame:
     locations = _build_locations(merged_codes)
