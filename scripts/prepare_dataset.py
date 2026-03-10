@@ -1,8 +1,9 @@
 import pandas as pd
 
 from src.config.paths import INTERIM_DIR, PROCESSED_DIR
-from src.dataset.prepare.aliases import build_aliases_table
-from src.dataset.prepare.locations import build_locations_table
+from src.dataset.preparation.aliases import build_aliases_table
+from src.dataset.preparation.locations import build_locations_table
+from src.dataset.validation.validate import validate_aliases, validate_locations
 
 
 def main() -> None:
@@ -15,6 +16,9 @@ def main() -> None:
 
     locations = build_locations_table(merged_codes=merged_codes)
     aliases = build_aliases_table(merged_codes=merged_codes)
+
+    locations = validate_locations(locations=locations)
+    aliases = validate_aliases(aliases=aliases, locations=locations)
 
     locations_path = PROCESSED_DIR / "unlocode_locations.parquet"
     aliases_path = PROCESSED_DIR / "unlocode_aliases.parquet"
