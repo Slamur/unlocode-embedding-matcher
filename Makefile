@@ -35,7 +35,7 @@ help:
 # ---------------------
 
 venv:
-	python -m venv $(VENV)
+	python3 -m venv $(VENV)
 
 install: venv
 	$(PIP) install -r requirements.txt
