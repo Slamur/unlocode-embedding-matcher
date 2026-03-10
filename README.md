@@ -15,5 +15,12 @@ pip install -r requirements.txt
 ### Download UN/LOCODE raw data
 
 ```sh
-python ./scripts/download_unlocode.py
+python  -m scripts.download_unlocode
+```
+
+### Prepare UN/LOCODE parquet files
+
+```sh
+python -m scripts.ingest_unlocode
+python -m scripts.prepare_unlocode
 ```
