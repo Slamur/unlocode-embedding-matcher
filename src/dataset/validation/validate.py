@@ -68,8 +68,6 @@ def validate_locations(locations: pd.DataFrame) -> pd.DataFrame:
             "locode",
             "country",
             "code",
-            "name",
-            "name_wo_diacritics",
             "subdivision_code",
             "subdivision_name",
         ],
@@ -77,7 +75,7 @@ def validate_locations(locations: pd.DataFrame) -> pd.DataFrame:
 
     _ensure_no_empty_strings(
         result,
-        ["locode", "country", "code", "name", "name_wo_diacritics"],
+        ["locode", "country", "code"],
         df_name="locations",
     )
 

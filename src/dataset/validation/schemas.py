@@ -41,8 +41,6 @@ LOCATIONS_SCHEMA = DataFrameSchema(
         "locode": locode_column(),
         "country": required_string_column(),
         "code": required_string_column(),
-        "name": required_string_column(),
-        "name_wo_diacritics": required_string_column(),
         "subdivision_code": optional_string_column(),
         "subdivision_name": optional_string_column(),
     },
