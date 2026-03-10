@@ -1,54 +1,9 @@
-from pathlib import Path
-
 import pandas as pd
 
 from src.config.paths import RAW_DIR, INTERIM_DIR
 from src.dataset.logging import log_df_info
-from src.dataset.io.csv import *
-from src.dataset.codes import read_prepared_codes
-
-SUBDIVISION_COLUMNS = [
-    "country",
-    "subdivision_code",
-    "subdivision_name",
-    "subdivision_type",
-]
-
-
-class _SubdivisionsPreparer:
-
-    @staticmethod
-    def _read_subdivisions(csv_dir: Path = RAW_DIR) -> pd.DataFrame:
-        subdivision_files = find_csv_files(csv_dir, "Subdivision")
-        if not subdivision_files:
-            raise RuntimeError(f"No subdivision CSV found in {csv_dir}")
-
-        return read_csv_file(subdivision_files[0], column_names=SUBDIVISION_COLUMNS)
-
-    @staticmethod
-    def _prepare_subdivisions(
-        subdivisions_df: pd.DataFrame,
-    ) -> pd.DataFrame:
-        prepared_subdivisions_df = subdivisions_df.copy()
-
-        # pure string columns
-        for col in ("country", "subdivision_code", "subdivision_name", "subdivision_type"):
-            prepared_subdivisions_df[col] = prepared_subdivisions_df[col].str.strip()
-
-        return prepared_subdivisions_df
-    
-    @staticmethod
-    def read_prepared_subdivisions_df(verbose: bool = False) -> pd.DataFrame:
-        subdivisions_df = _SubdivisionsPreparer._read_subdivisions()
-
-        log_df_info(subdivisions_df, "Subdivisions", verbose=verbose)
-
-        prepared_subdivisions_df = _SubdivisionsPreparer._prepare_subdivisions(subdivisions_df)
-
-        log_df_info(prepared_subdivisions_df, "Prepared Subdivisions", verbose=verbose)
-
-        return prepared_subdivisions_df
-
+from src.dataset.ingest.codes import read_prepared_codes
+from src.dataset.ingest.subdivisions import read_prepared_subdivisions
 
 class _DataMerger:
 
@@ -85,8 +40,8 @@ class _DataMerger:
 
 def main() -> None:
 
-    codes_df = read_prepared_codes(RAW_DIR, 'CodeListPart')
-    subdivisions_df = _SubdivisionsPreparer.read_prepared_subdivisions_df()
+    codes_df = read_prepared_codes(RAW_DIR, "CodeListPart")
+    subdivisions_df = read_prepared_subdivisions(RAW_DIR, "Subdivision")
 
     merged_df = _DataMerger.merge_and_prepare(codes_df, subdivisions_df)
 

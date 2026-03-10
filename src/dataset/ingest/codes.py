@@ -22,14 +22,19 @@ _UNLOCODE_COLUMNS = [
 ]
 
 
-def _read_codes(csv_dir: Path, part_substring: str) -> pd.DataFrame:
-    part_files = find_csv_files(csv_dir, part_substring)
+def _read_codes(
+    csv_dir: Path, 
+    filename_substring: str,
+) -> pd.DataFrame:
+    part_files = find_csv_files(directory=csv_dir, filename_substring=filename_substring)
 
-    parts = [read_csv_file(path, column_names=_UNLOCODE_COLUMNS) for path in part_files]
+    parts = [read_csv_file(path=path, column_names=_UNLOCODE_COLUMNS) for path in part_files]
     return pd.concat(parts, ignore_index=True)
 
 
-def _prepare_codes(codes: pd.DataFrame) -> pd.DataFrame:
+def _prepare_codes(
+    codes: pd.DataFrame,
+) -> pd.DataFrame:
     prepared_codes = codes.copy()
 
     # pure string columns
@@ -46,8 +51,12 @@ def _prepare_codes(codes: pd.DataFrame) -> pd.DataFrame:
     return prepared_codes
 
 
-def read_prepared_codes(csv_dir: Path, part_substring: str, verbose: bool = False) -> pd.DataFrame:
-    codes = _read_codes(csv_dir, part_substring)
+def read_prepared_codes(
+    csv_dir: Path, 
+    filename_substring: str, 
+    verbose: bool = False,
+) -> pd.DataFrame:
+    codes = _read_codes(csv_dir, filename_substring)
 
     log_df_info(codes, "Codes", verbose=verbose)
 
