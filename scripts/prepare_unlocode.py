@@ -2,7 +2,7 @@ import re
 import pandas as pd
 
 from src.config.paths import INTERIM_DIR, PROCESSED_DIR
-from src.dataset.utils import print_df_info
+from src.dataset.logging import log_df_info
 
 class _AliasesResolver:
 
@@ -23,11 +23,11 @@ class _AliasesResolver:
 
         aliases_df = _AliasesResolver._build_aliases_df(merged_df)
 
-        print_df_info(aliases_df, "Aliases DataFrame", verbose=verbose)
+        log_df_info(aliases_df, "Aliases DataFrame", verbose=verbose)
 
         prepared_aliases_df = _AliasesResolver._prepare_aliases_df(aliases_df)
 
-        print_df_info(prepared_aliases_df, "Prepared Aliases DataFrame", verbose=verbose)
+        log_df_info(prepared_aliases_df, "Prepared Aliases DataFrame", verbose=verbose)
 
         return prepared_aliases_df
     
@@ -106,11 +106,11 @@ class _AliasesSplitter:
 
         splitted_aliases_df = _AliasesSplitter._split_parenthesized_aliases(aliases_df)
 
-        print_df_info(splitted_aliases_df, "Splitted Aliases DataFrame", verbose=verbose)
+        log_df_info(splitted_aliases_df, "Splitted Aliases DataFrame", verbose=verbose)
 
         prepared_splitted_aliases_df = _AliasesSplitter._prepare_aliases_df(splitted_aliases_df)
 
-        print_df_info(prepared_splitted_aliases_df, "Prepared Splitted Aliases DataFrame", verbose=verbose)
+        log_df_info(prepared_splitted_aliases_df, "Prepared Splitted Aliases DataFrame", verbose=verbose)
 
         return prepared_splitted_aliases_df
 
@@ -136,11 +136,11 @@ class _LocationsResolver:
     def resolve_locations(merged_df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
         locations_df = _LocationsResolver._build_locations_df(merged_df)
 
-        print_df_info(locations_df, "Locations DataFrame", verbose=verbose)
+        log_df_info(locations_df, "Locations DataFrame", verbose=verbose)
 
         prepared_locations_df = _LocationsResolver._prepare_locations_df(locations_df)
 
-        print_df_info(prepared_locations_df, "Prepared Locations DataFrame", verbose=verbose)
+        log_df_info(prepared_locations_df, "Prepared Locations DataFrame", verbose=verbose)
 
         return prepared_locations_df
 

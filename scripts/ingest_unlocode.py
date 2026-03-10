@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 from src.config.paths import RAW_DIR, INTERIM_DIR
-from src.dataset.utils import print_df_info
+from src.dataset.logging import log_df_info
 
 UNLOCODE_COLUMNS = [
     "change",
@@ -79,11 +79,11 @@ class _CodesPreparer:
     def read_prepared_codes_df(verbose: bool = False) -> pd.DataFrame:
         codes_df = _CodesPreparer._read_codes()
 
-        print_df_info(codes_df, "Codes", verbose=verbose)
+        log_df_info(codes_df, "Codes", verbose=verbose)
 
         prepared_codes_df = _CodesPreparer._prepare_codes_df(codes_df)
 
-        print_df_info(prepared_codes_df, "Prepared Codes", verbose=verbose)
+        log_df_info(prepared_codes_df, "Prepared Codes", verbose=verbose)
 
         return prepared_codes_df
 
@@ -114,11 +114,11 @@ class _SubdivisionsPreparer:
     def read_prepared_subdivisions_df(verbose: bool = False) -> pd.DataFrame:
         subdivisions_df = _SubdivisionsPreparer._read_subdivisions()
 
-        print_df_info(subdivisions_df, "Subdivisions", verbose=verbose)
+        log_df_info(subdivisions_df, "Subdivisions", verbose=verbose)
 
         prepared_subdivisions_df = _SubdivisionsPreparer._prepare_subdivisions(subdivisions_df)
 
-        print_df_info(prepared_subdivisions_df, "Prepared Subdivisions", verbose=verbose)
+        log_df_info(prepared_subdivisions_df, "Prepared Subdivisions", verbose=verbose)
 
         return prepared_subdivisions_df
 
@@ -151,7 +151,7 @@ class _DataMerger:
         merged_df = _DataMerger._merge_codes_with_subdivisions(codes_df, subdivisions_df)
         prepared_merged_df = _DataMerger._prepare_merged_df(merged_df)
 
-        print_df_info(merged_df, "Merged DataFrame", verbose=verbose)
+        log_df_info(merged_df, "Merged DataFrame", verbose=verbose)
 
         return prepared_merged_df
 
