@@ -11,7 +11,7 @@ def _download_stream(response: requests.Response, destination: Path, chunk_size:
             f.write(chunk)
 
 
-def download_zip(url: str, destination_dir: Path, destination_filename: str) -> Path:
+def download(url: str, destination_dir: Path, destination_filename: str) -> Path:
     print(f"Downloading {destination_filename} from {url} to {destination_dir}")
 
     destination_dir.mkdir(parents=True, exist_ok=True)
