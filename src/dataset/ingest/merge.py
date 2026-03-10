@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.dataset.logging import log_df_info
+from src.dataset.inspect import inspect_df_info
 
 def _merge_codes_with_subdivisions(
     codes: pd.DataFrame, 
@@ -36,6 +36,6 @@ def merge_and_prepare(
     merged_codes = _merge_codes_with_subdivisions(codes=codes, subdivisions=subdivisions)
     prepared_merged_codes = _prepare_merged_codes(merged_codes=merged_codes)
 
-    log_df_info(merged_codes, "Merged DataFrame", verbose=verbose)
+    inspect_df_info(merged_codes, "Merged DataFrame", verbose=verbose)
 
     return prepared_merged_codes

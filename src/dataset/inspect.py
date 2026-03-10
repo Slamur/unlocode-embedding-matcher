@@ -1,6 +1,6 @@
 import pandas as pd
 
-def log_df_info(df: pd.DataFrame, name: str, verbose: bool = False) -> None:
+def inspect_df_info(df: pd.DataFrame, name: str, verbose: bool = False) -> None:
     if not verbose:
         return
 

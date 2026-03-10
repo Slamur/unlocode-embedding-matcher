@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.dataset.logging import log_df_info
+from src.dataset.inspect import inspect_df_info
 from src.dataset.io.csv import find_csv_files, read_csv_file
 
 
@@ -44,10 +44,10 @@ def read_prepared_subdivisions(
 ) -> pd.DataFrame:
     subdivisions = _read_subdivisions(csv_dir=csv_dir, filename_substring=filename_substring)
 
-    log_df_info(subdivisions, "Subdivisions", verbose=verbose)
+    inspect_df_info(subdivisions, "Subdivisions", verbose=verbose)
 
     prepared_subdivisions = _prepare_subdivisions(subdivisions)
 
-    log_df_info(prepared_subdivisions, "Prepared Subdivisions", verbose=verbose)
+    inspect_df_info(prepared_subdivisions, "Prepared Subdivisions", verbose=verbose)
 
     return prepared_subdivisions

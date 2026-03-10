@@ -1,0 +1,918 @@
+diff --git a/scripts/download_unlocode.py b/scripts/download_unlocode.py
+index c116710..b09c998 100644
+--- a/scripts/download_unlocode.py
++++ b/scripts/download_unlocode.py
+@@ -1,54 +1,18 @@
+-import requests
+-import zipfile
+-from pathlib import Path
+-
+ from src.config.paths import RAW_DIR
++from src.dataset.io.download import download
++from src.dataset.io.zip import unzip
+ 
+ 
+ _URL = "https://service.unece.org/trade/locode/loc242csv.zip"
+ 
+ _ZIP_FILENAME = "unlocode.zip"
+ 
+-_STREAM_CHUNK_SIZE = 8192
+-
+-
+-def _download_stream(response: requests.Response, destination: Path, chunk_size: int = _STREAM_CHUNK_SIZE):
+-    with open(destination, "wb") as f:
+-        for chunk in response.iter_content(chunk_size=chunk_size):
+-            f.write(chunk)
+-
+-
+-def _download_zip(url: str = _URL, destination_dir: Path = RAW_DIR) -> Path:
+-    print(f"Downloading UN/LOCODE dataset from {url} to {destination_dir}")
+-
+-    destination_dir.mkdir(parents=True, exist_ok=True)
+-
+-    destination = destination_dir / _ZIP_FILENAME
+-
+-    if destination.exists():
+-        print(f"File {destination} already exists. Skipping download.")
+-        return destination
+-
+-    with requests.get(url, stream=True) as response:
+-        response.raise_for_status()
+-
+-        _download_stream(response, destination, chunk_size=_STREAM_CHUNK_SIZE)
+-
+-    return destination
+-
+-
+-def _unzip(source: Path, dest: Path = RAW_DIR):
+-    print(f"Extracting dataset from {source} to {dest}")
+-
+-    with zipfile.ZipFile(source, "r") as z:
+-        z.extractall(dest)
+-
+ 
+ def main():
+     destination_dir = RAW_DIR
+ 
+-    zip_filename = _download_zip(destination_dir=destination_dir)
+-    _unzip(source=zip_filename, dest=destination_dir)
++    zip_path = download(url=_URL, destination_dir=RAW_DIR, destination_filename=_ZIP_FILENAME)
++    unzip(source=zip_path, dest=RAW_DIR)
+ 
+     print("Dataset ready in", destination_dir)
+ 
+diff --git a/scripts/ingest_unlocode.py b/scripts/ingest_unlocode.py
+index 91630ee..b5084c5 100644
+--- a/scripts/ingest_unlocode.py
++++ b/scripts/ingest_unlocode.py
+@@ -1,173 +1,21 @@
+-from collections.abc import Sequence
+-from pathlib import Path
+-
+-import pandas as pd
+-
+ from src.config.paths import RAW_DIR, INTERIM_DIR
+-from src.dataset.utils import print_df_info
+-
+-UNLOCODE_COLUMNS = [
+-    "change",
+-    "country",
+-    "code",
+-    "name",
+-    "name_wo_diacritics",
+-    "subdivision",
+-    "function",
+-    "status",
+-    "date",
+-    "iata",
+-    "coordinates",
+-    "remarks",
+-]
+-
+-SUBDIVISION_COLUMNS = [
+-    "country",
+-    "subdivision_code",
+-    "subdivision_name",
+-    "subdivision_type",
+-]
+-
+-
+-def _find_csv_files(directory: Path, substring: str) -> Sequence[Path]:
+-    files = sorted(directory.glob(f"*{substring}*.csv"))
+-
+-    if not files:
+-        raise RuntimeError(f"No files matching substring '{substring}' found in {directory}")
+-    
+-    return files
+-
+-
+-def _read_csv_file(path: Path, column_names: list[str] | None = None) -> pd.DataFrame:
+-    return pd.read_csv(
+-        path,
+-        header=None,
+-        names=column_names,
+-        dtype=str,
+-        keep_default_na=False,
+-        encoding="cp1252",
+-    )
+-
+-
+-class _CodesPreparer:
+-
+-    @staticmethod
+-    def _read_codes(csv_dir: Path = RAW_DIR) -> pd.DataFrame:
+-        part_files = _find_csv_files(csv_dir, "CodeListPart")
+-
+-        parts = [_read_csv_file(path, column_names=UNLOCODE_COLUMNS) for path in part_files]
+-        return pd.concat(parts, ignore_index=True)
+-
+-    @staticmethod
+-    def _prepare_codes_df(codes_df: pd.DataFrame) -> pd.DataFrame:
+-        prepared_codes_df = codes_df.copy()
+-
+-        # pure string columns
+-        for col in ("country", "code", "name", "name_wo_diacritics", "subdivision"):
+-            prepared_codes_df[col] = prepared_codes_df[col].str.strip()
+-
+-        # filter columns without country and/or code
+-        prepared_codes_df = prepared_codes_df[(prepared_codes_df["country"] != "") & (prepared_codes_df["code"] != "")].copy()
+-
+-        # generate locode columns
+-        prepared_codes_df["locode"] = prepared_codes_df["country"] + prepared_codes_df["code"]
+-        prepared_codes_df["locode_display"] = prepared_codes_df["country"] + " " + prepared_codes_df["code"]
+-
+-        return prepared_codes_df
+-
+-    @staticmethod
+-    def read_prepared_codes_df(verbose: bool = False) -> pd.DataFrame:
+-        codes_df = _CodesPreparer._read_codes()
+-
+-        print_df_info(codes_df, "Codes", verbose=verbose)
+-
+-        prepared_codes_df = _CodesPreparer._prepare_codes_df(codes_df)
+-
+-        print_df_info(prepared_codes_df, "Prepared Codes", verbose=verbose)
+-
+-        return prepared_codes_df
+-
+-
+-class _SubdivisionsPreparer:
+-
+-    @staticmethod
+-    def _read_subdivisions(csv_dir: Path = RAW_DIR) -> pd.DataFrame:
+-        subdivision_files = _find_csv_files(csv_dir, "Subdivision")
+-        if not subdivision_files:
+-            raise RuntimeError(f"No subdivision CSV found in {csv_dir}")
+-
+-        return _read_csv_file(subdivision_files[0], column_names=SUBDIVISION_COLUMNS)
+-
+-    @staticmethod
+-    def _prepare_subdivisions(
+-        subdivisions_df: pd.DataFrame,
+-    ) -> pd.DataFrame:
+-        prepared_subdivisions_df = subdivisions_df.copy()
+-
+-        # pure string columns
+-        for col in ("country", "subdivision_code", "subdivision_name", "subdivision_type"):
+-            prepared_subdivisions_df[col] = prepared_subdivisions_df[col].str.strip()
+-
+-        return prepared_subdivisions_df
+-    
+-    @staticmethod
+-    def read_prepared_subdivisions_df(verbose: bool = False) -> pd.DataFrame:
+-        subdivisions_df = _SubdivisionsPreparer._read_subdivisions()
+-
+-        print_df_info(subdivisions_df, "Subdivisions", verbose=verbose)
+-
+-        prepared_subdivisions_df = _SubdivisionsPreparer._prepare_subdivisions(subdivisions_df)
+-
+-        print_df_info(prepared_subdivisions_df, "Prepared Subdivisions", verbose=verbose)
+-
+-        return prepared_subdivisions_df
+-
+-
+-class _DataMerger:
+-
+-    @staticmethod
+-    def _merge_codes_with_subdivisions(codes_df: pd.DataFrame, subdivisions_df: pd.DataFrame) -> pd.DataFrame:
+-        merged_df = codes_df.merge(
+-            subdivisions_df,
+-            how="left",
+-            left_on=["country", "subdivision"],
+-            right_on=["country", "subdivision_code"],
+-            suffixes=("", "_subdiv"),
+-        )
+-
+-        return merged_df
+-    
+-    @staticmethod
+-    def _prepare_merged_df(merged_df: pd.DataFrame) -> pd.DataFrame:
+-        prepared_merged_df = merged_df.copy()
+-
+-        for col in ["subdivision_code", "subdivision_name", "subdivision_type"]:
+-            prepared_merged_df[col] = prepared_merged_df[col].fillna("")
+-
+-        return prepared_merged_df
+-    
+-    @staticmethod
+-    def merge_and_prepare(codes_df: pd.DataFrame, subdivisions_df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
+-        merged_df = _DataMerger._merge_codes_with_subdivisions(codes_df, subdivisions_df)
+-        prepared_merged_df = _DataMerger._prepare_merged_df(merged_df)
+-
+-        print_df_info(merged_df, "Merged DataFrame", verbose=verbose)
+-
+-        return prepared_merged_df
++from src.dataset.ingest.codes import read_prepared_codes
++from src.dataset.ingest.subdivisions import read_prepared_subdivisions
++from src.dataset.ingest.merge import merge_and_prepare
+ 
+ 
+ def main() -> None:
+ 
+-    codes_df = _CodesPreparer.read_prepared_codes_df()
+-    subdivisions_df = _SubdivisionsPreparer.read_prepared_subdivisions_df()
++    codes = read_prepared_codes(csv_dir=RAW_DIR, filename_substring="CodeListPart")
++    subdivisions = read_prepared_subdivisions(csv_dir=RAW_DIR, filename_substring="Subdivision")
+ 
+-    merged_df = _DataMerger.merge_and_prepare(codes_df, subdivisions_df)
++    merged = merge_and_prepare(codes=codes, subdivisions=subdivisions)
+ 
+-    merged_df_path = INTERIM_DIR / "merged_codes.parquet"
+-    merged_df.to_parquet(merged_df_path, index=False)
++    merged_path = INTERIM_DIR / "merged_codes.parquet"
++    merged.to_parquet(merged_path, index=False)
+ 
+-    print(f"Saved merged codes to: {merged_df_path}")
+-    print(f"Shape: {merged_df.shape}")
++    print(f"Saved merged codes to: {merged_path}")
++    print(f"Shape: {merged.shape}")
+ 
+ 
+ if __name__ == "__main__":
+diff --git a/scripts/prepare_unlocode.py b/scripts/prepare_unlocode.py
+index 3915dc4..c4999c9 100644
+--- a/scripts/prepare_unlocode.py
++++ b/scripts/prepare_unlocode.py
+@@ -1,166 +1,25 @@
+-import re
+ import pandas as pd
+ 
+ from src.config.paths import INTERIM_DIR, PROCESSED_DIR
+-from src.dataset.utils import print_df_info
+-
+-class _AliasesResolver:
+-
+-    @staticmethod
+-    def _build_aliases_df(merged_df: pd.DataFrame) -> pd.DataFrame:
+-        aliases_df = merged_df[["locode", "name", "name_wo_diacritics"]].copy()
+-
+-        return aliases_df
+-
+-    @staticmethod
+-    def _prepare_aliases_df(aliases_df: pd.DataFrame) -> pd.DataFrame:
+-        prepared_aliases_df = aliases_df.copy()
+-
+-        return prepared_aliases_df
+-
+-    @staticmethod
+-    def resolve_aliases(merged_df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
+-
+-        aliases_df = _AliasesResolver._build_aliases_df(merged_df)
+-
+-        print_df_info(aliases_df, "Aliases DataFrame", verbose=verbose)
+-
+-        prepared_aliases_df = _AliasesResolver._prepare_aliases_df(aliases_df)
+-
+-        print_df_info(prepared_aliases_df, "Prepared Aliases DataFrame", verbose=verbose)
+-
+-        return prepared_aliases_df
+-    
+-
+-class _AliasesSplitter:
+-
+-    PARENTHESIZED_NAME_PATTERN = re.compile(r"^\s*(.*?)\s*\((.*?)\)\s*$")
+-
+-    @staticmethod
+-    def _split_parenthesized_name_with_labels(name: str) -> list[tuple[str, str]]:
+-        name = name.strip()
+-        if not name:
+-            return []
+-
+-        result: list[tuple[str, str]] = [(name, "full")]
+-
+-        match = _AliasesSplitter.PARENTHESIZED_NAME_PATTERN.match(name)
+-        if not match:
+-            return result
+-
+-        left = match.group(1).strip()
+-        inner = match.group(2).strip()
+-
+-        if left:
+-            result.append((left, "paren_left"))
+-
+-        if inner:
+-            result.append((inner, "paren_inner"))
+-
+-        return result
+-
+-    @staticmethod
+-    def _build_splitted_rows(aliases_df: pd.DataFrame) -> list[tuple[str, str, str, str]]:
+-        splitted_rows: list[tuple[str, str, str, str]] = []
+-
+-        def add_rows_for(locode: str, source_field: str, field_value: str) -> None:
+-            for alias_text, alias_kind in _AliasesSplitter._split_parenthesized_name_with_labels(field_value):
+-                splitted_rows.append((locode, source_field, alias_text, alias_kind))
+-
+-        for locode, name, name_wo_diacritics in aliases_df.itertuples(index=False, name=None):
+-            add_rows_for(locode, "name", name)
+-            add_rows_for(locode, "name_wo_diacritics", name_wo_diacritics)
+-
+-        return splitted_rows
+-    
+-    @staticmethod
+-    def _split_parenthesized_aliases(aliases_df: pd.DataFrame) -> pd.DataFrame:
+-        splitted_rows = _AliasesSplitter._build_splitted_rows(aliases_df)
+-
+-        splitted_aliases_df = pd.DataFrame(
+-            splitted_rows,
+-            columns=["locode", "source_field", "alias_text", "alias_kind"],
+-        )
+-
+-        return splitted_aliases_df
+-
+-    @staticmethod
+-    def _prepare_aliases_df(splitted_aliases_df: pd.DataFrame) -> pd.DataFrame:
+-        prepared_aliases_df = splitted_aliases_df[["locode", "alias_text"]].copy()
+-
+-        # strip names
+-        prepared_aliases_df["alias_text"] = prepared_aliases_df["alias_text"].str.strip()
+-
+-        # remove empty names
+-        prepared_aliases_df = prepared_aliases_df[prepared_aliases_df["alias_text"] != ""].copy()
+-
+-        # remove duplicates
+-        prepared_aliases_df = prepared_aliases_df.drop_duplicates(
+-            subset=["locode", "alias_text"]
+-        ).reset_index(drop=True)
+-
+-        return prepared_aliases_df
+-
+-    @staticmethod
+-    def split_aliases(aliases_df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
+-
+-        splitted_aliases_df = _AliasesSplitter._split_parenthesized_aliases(aliases_df)
+-
+-        print_df_info(splitted_aliases_df, "Splitted Aliases DataFrame", verbose=verbose)
+-
+-        prepared_splitted_aliases_df = _AliasesSplitter._prepare_aliases_df(splitted_aliases_df)
+-
+-        print_df_info(prepared_splitted_aliases_df, "Prepared Splitted Aliases DataFrame", verbose=verbose)
+-
+-        return prepared_splitted_aliases_df
+-
+-
+-class _LocationsResolver:
+-
+-    @staticmethod
+-    def _build_locations_df(merged_df: pd.DataFrame) -> pd.DataFrame:
+-        locations_df = merged_df.drop(columns=["name", "name_wo_diacritics"]).copy()
+-
+-        return locations_df
+-
+-    @staticmethod
+-    def _prepare_locations_df(locations_df: pd.DataFrame) -> pd.DataFrame:
+-        prepared_locations_df = locations_df.copy()
+-
+-        # remove full locode duplicates
+-        prepared_locations_df = prepared_locations_df.drop_duplicates(subset=["locode"])
+-
+-        return prepared_locations_df
+-
+-    @staticmethod
+-    def resolve_locations(merged_df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
+-        locations_df = _LocationsResolver._build_locations_df(merged_df)
+-
+-        print_df_info(locations_df, "Locations DataFrame", verbose=verbose)
+-
+-        prepared_locations_df = _LocationsResolver._prepare_locations_df(locations_df)
+-
+-        print_df_info(prepared_locations_df, "Prepared Locations DataFrame", verbose=verbose)
+-
+-        return prepared_locations_df
+-
+-
++from src.dataset.prepare.locations import resolve_locations
++from src.dataset.prepare.aliases import resolve_aliases
+ 
+ def main() -> None:
+ 
+     merged_codes_path = INTERIM_DIR / "merged_codes.parquet"
+-    merged_codes_df = pd.read_parquet(merged_codes_path)
+-
+-    locations_df = _LocationsResolver.resolve_locations(merged_codes_df)
++    if not merged_codes_path.exists():
++        raise FileNotFoundError(f"Expected merged codes file not found at: {merged_codes_path}")
++    
++    merged_codes = pd.read_parquet(merged_codes_path)
+ 
+-    aliases_df = _AliasesResolver.resolve_aliases(merged_codes_df)
+-    splitted_aliases_df = _AliasesSplitter.split_aliases(aliases_df)
++    locations = resolve_locations(merged_codes=merged_codes)
++    aliases = resolve_aliases(merged_codes=merged_codes)
+ 
+     locations_path = PROCESSED_DIR / "unlocode_locations.parquet"
+     aliases_path = PROCESSED_DIR / "unlocode_aliases.parquet"
+ 
+-    locations_df.to_parquet(locations_path, index=False)
+-    splitted_aliases_df.to_parquet(aliases_path, index=False)
++    locations.to_parquet(locations_path, index=False)
++    aliases.to_parquet(aliases_path, index=False)
+ 
+     print(f"Saved locations to: {locations_path}")
+     print(f"Saved aliases to: {aliases_path}")
+diff --git a/src/config/paths.py b/src/config/paths.py
+index 2049801..4a72e9e 100644
+--- a/src/config/paths.py
++++ b/src/config/paths.py
+@@ -12,14 +12,14 @@ def _find_project_root(start: Path) -> Path:
+     raise RuntimeError("Could not determine project root")
+ 
+ 
+-def _get_existing_dir_path(path: Path) -> Path:
++def _ensure_dir_exists(path: Path) -> Path:
+     path.mkdir(parents=True, exist_ok=True)
+     return path
+ 
+ 
+ PROJECT_ROOT = _find_project_root(Path(__file__).resolve())
+ 
+-DATA_DIR = _get_existing_dir_path(PROJECT_ROOT / "data")
+-RAW_DIR = _get_existing_dir_path(DATA_DIR / "raw")
+-INTERIM_DIR = _get_existing_dir_path(DATA_DIR / "interim")
+-PROCESSED_DIR = _get_existing_dir_path(DATA_DIR / "processed")
++DATA_DIR = _ensure_dir_exists(PROJECT_ROOT / "data")
++RAW_DIR = _ensure_dir_exists(DATA_DIR / "raw")
++INTERIM_DIR = _ensure_dir_exists(DATA_DIR / "interim")
++PROCESSED_DIR = _ensure_dir_exists(DATA_DIR / "processed")
+diff --git a/src/dataset/ingest/__init__.py b/src/dataset/ingest/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/src/dataset/ingest/codes.py b/src/dataset/ingest/codes.py
+new file mode 100644
+index 0000000..e0c5b4b
+--- /dev/null
++++ b/src/dataset/ingest/codes.py
+@@ -0,0 +1,67 @@
++from pathlib import Path
++
++import pandas as pd
++
++from src.dataset.logging import log_df_info
++from src.dataset.io.csv import find_csv_files, read_csv_file
++
++
++_UNLOCODE_COLUMNS = [
++    "change",
++    "country",
++    "code",
++    "name",
++    "name_wo_diacritics",
++    "subdivision",
++    "function",
++    "status",
++    "date",
++    "iata",
++    "coordinates",
++    "remarks",
++]
++
++
++def _read_codes(
++    csv_dir: Path, 
++    filename_substring: str,
++) -> pd.DataFrame:
++    part_files = find_csv_files(directory=csv_dir, filename_substring=filename_substring)
++
++    parts = [read_csv_file(path=path, column_names=_UNLOCODE_COLUMNS) for path in part_files]
++    return pd.concat(parts, ignore_index=True)
++
++
++def _prepare_codes(
++    codes: pd.DataFrame,
++) -> pd.DataFrame:
++    prepared_codes = codes.copy()
++
++    # pure string columns
++    for col in ("country", "code", "name", "name_wo_diacritics", "subdivision"):
++        prepared_codes[col] = prepared_codes[col].str.strip()
++
++    # filter columns without country and/or code
++    prepared_codes = prepared_codes[(prepared_codes["country"] != "") & (prepared_codes["code"] != "")].copy()
++
++    # generate locode columns
++    prepared_codes["locode"] = prepared_codes["country"] + prepared_codes["code"]
++    prepared_codes["locode_display"] = prepared_codes["country"] + " " + prepared_codes["code"]
++
++    return prepared_codes
++
++
++def read_prepared_codes(
++    csv_dir: Path, 
++    filename_substring: str, 
++    verbose: bool = False,
++) -> pd.DataFrame:
++    codes = _read_codes(csv_dir=csv_dir, filename_substring=filename_substring)
++
++    log_df_info(codes, "Codes", verbose=verbose)
++
++    prepared_codes = _prepare_codes(codes=codes)
++
++    log_df_info(prepared_codes, "Prepared Codes", verbose=verbose)
++
++    return prepared_codes
+diff --git a/src/dataset/ingest/merge.py b/src/dataset/ingest/merge.py
+new file mode 100644
+index 0000000..e4d6923
+--- /dev/null
++++ b/src/dataset/ingest/merge.py
+@@ -0,0 +1,41 @@
++import pandas as pd
++
++from src.dataset.logging import log_df_info
++
++def _merge_codes_with_subdivisions(
++    codes: pd.DataFrame, 
++    subdivisions: pd.DataFrame,
++) -> pd.DataFrame:
++    merged_codes = codes.merge(
++        subdivisions,
++        how="left",
++        left_on=["country", "subdivision"],
++        right_on=["country", "subdivision_code"],
++        suffixes=("", "_subdiv"),
++    )
++
++    return merged_codes
++
++
++def _prepare_merged_codes(
++    merged_codes: pd.DataFrame,
++) -> pd.DataFrame:
++    prepared_merged_codes = merged_codes.copy()
++
++    for col in ["subdivision_code", "subdivision_name", "subdivision_type"]:
++        prepared_merged_codes[col] = prepared_merged_codes[col].fillna("")
++
++    return prepared_merged_codes
++
++
++def merge_and_prepare(
++    codes: pd.DataFrame, 
++    subdivisions: pd.DataFrame, 
++    verbose: bool = False,
++) -> pd.DataFrame:
++    merged_codes = _merge_codes_with_subdivisions(codes=codes, subdivisions=subdivisions)
++    prepared_merged_codes = _prepare_merged_codes(merged_codes=merged_codes)
++
++    log_df_info(merged_codes, "Merged DataFrame", verbose=verbose)
++
++    return prepared_merged_codes
+diff --git a/src/dataset/ingest/subdivisions.py b/src/dataset/ingest/subdivisions.py
+new file mode 100644
+index 0000000..aea77fc
+--- /dev/null
++++ b/src/dataset/ingest/subdivisions.py
+@@ -0,0 +1,53 @@
++from pathlib import Path
++
++import pandas as pd
++
++from src.dataset.logging import log_df_info
++from src.dataset.io.csv import find_csv_files, read_csv_file
++
++
++SUBDIVISION_COLUMNS = [
++    "country",
++    "subdivision_code",
++    "subdivision_name",
++    "subdivision_type",
++]
++
++
++def _read_subdivisions(
++    csv_dir: Path, 
++    filename_substring: str,
++) -> pd.DataFrame:
++    subdivision_files = find_csv_files(directory=csv_dir, filename_substring=filename_substring)
++    if not subdivision_files:
++        raise RuntimeError(f"No subdivision CSV found in {csv_dir}")
++
++    return read_csv_file(path=subdivision_files[0], column_names=SUBDIVISION_COLUMNS)
++
++
++def _prepare_subdivisions(
++    subdivisions: pd.DataFrame,
++) -> pd.DataFrame:
++    prepared_subdivisions = subdivisions.copy()
++
++    # pure string columns
++    for col in ("country", "subdivision_code", "subdivision_name", "subdivision_type"):
++        prepared_subdivisions[col] = prepared_subdivisions[col].str.strip()
++
++    return prepared_subdivisions
++
++
++def read_prepared_subdivisions(
++    csv_dir: Path,
++    filename_substring: str,
++    verbose: bool = False,
++) -> pd.DataFrame:
++    subdivisions = _read_subdivisions(csv_dir=csv_dir, filename_substring=filename_substring)
++
++    log_df_info(subdivisions, "Subdivisions", verbose=verbose)
++
++    prepared_subdivisions = _prepare_subdivisions(subdivisions)
++
++    log_df_info(prepared_subdivisions, "Prepared Subdivisions", verbose=verbose)
++
++    return prepared_subdivisions
+diff --git a/src/dataset/io/__init__.py b/src/dataset/io/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/src/dataset/io/csv.py b/src/dataset/io/csv.py
+new file mode 100644
+index 0000000..9191d00
+--- /dev/null
++++ b/src/dataset/io/csv.py
+@@ -0,0 +1,34 @@
++from collections.abc import Sequence
++from pathlib import Path
++
++import pandas as pd
++
++
++DEFAULT_ENCODING = "cp1252"
++
++
++def find_csv_files(
++    directory: Path, 
++    filename_substring: str,
++) -> Sequence[Path]:
++    files = sorted(directory.glob(f"*{filename_substring}*.csv"))
++
++    if not files:
++        raise RuntimeError(f"No files matching substring '{filename_substring}' found in {directory}")
++    
++    return files
++
++
++def read_csv_file(
++    path: Path, 
++    column_names: list[str] | None = None, 
++    encoding: str = DEFAULT_ENCODING,
++) -> pd.DataFrame:
++    return pd.read_csv(
++        path,
++        header=None,
++        names=column_names,
++        dtype=str,
++        keep_default_na=False,
++        encoding=encoding,
++    )
+diff --git a/src/dataset/io/download.py b/src/dataset/io/download.py
+new file mode 100644
+index 0000000..7d22b7b
+--- /dev/null
++++ b/src/dataset/io/download.py
+@@ -0,0 +1,38 @@
++import requests
++from pathlib import Path
++
++
++_STREAM_CHUNK_SIZE = 8192
++
++
++def _download_stream(
++    response: requests.Response, 
++    destination: Path, 
++    chunk_size: int = _STREAM_CHUNK_SIZE,
++):
++    with open(destination, "wb") as f:
++        for chunk in response.iter_content(chunk_size=chunk_size):
++            f.write(chunk)
++
++
++def download(
++    url: str, 
++    destination_dir: Path, 
++    destination_filename: str,
++) -> Path:
++    print(f"Downloading {destination_filename} from {url} to {destination_dir}")
++
++    destination_dir.mkdir(parents=True, exist_ok=True)
++
++    destination = destination_dir / destination_filename
++
++    if destination.exists():
++        print(f"File {destination} already exists. Skipping download.")
++        return destination
++
++    with requests.get(url, stream=True) as response:
++        response.raise_for_status()
++
++        _download_stream(response=response, destination=destination)
++
++    return destination
+diff --git a/src/dataset/io/zip.py b/src/dataset/io/zip.py
+new file mode 100644
+index 0000000..93d85be
+--- /dev/null
++++ b/src/dataset/io/zip.py
+@@ -0,0 +1,11 @@
++import zipfile
++from pathlib import Path
++
++def unzip(
++    source: Path, 
++    dest: Path,
++) -> None:
++    print(f"Extracting dataset from {source} to {dest}")
++
++    with zipfile.ZipFile(source, "r") as z:
++        z.extractall(dest)
+diff --git a/src/dataset/utils.py b/src/dataset/logging.py
+similarity index 66%
+rename from src/dataset/utils.py
+rename to src/dataset/logging.py
+index ff77034..7b8b42d 100644
+--- a/src/dataset/utils.py
++++ b/src/dataset/logging.py
+@@ -1,6 +1,6 @@
+ import pandas as pd
+ 
+-def print_df_info(df: pd.DataFrame, name: str, verbose: bool = False) -> None:
++def log_df_info(df: pd.DataFrame, name: str, verbose: bool = False) -> None:
+     if not verbose:
+         return
+ 
+diff --git a/src/dataset/prepare/__init__.py b/src/dataset/prepare/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/src/dataset/prepare/aliases.py b/src/dataset/prepare/aliases.py
+new file mode 100644
+index 0000000..9087b5d
+--- /dev/null
++++ b/src/dataset/prepare/aliases.py
+@@ -0,0 +1,58 @@
++import pandas as pd
++
++from src.dataset.logging import log_df_info
++from src.dataset.prepare.split import build_splitted_rows
++
++
++def _build_aliases(merged_codes: pd.DataFrame) -> pd.DataFrame:
++    aliases = merged_codes[["locode", "name", "name_wo_diacritics"]].copy()
++
++    return aliases
++
++
++def _split_parenthesized_aliases(aliases: pd.DataFrame) -> pd.DataFrame:
++    splitted_rows = build_splitted_rows(aliases)
++
++    splitted_aliases = pd.DataFrame(
++        splitted_rows,
++        columns=["locode", "source_field", "alias_text", "alias_kind"],
++    )
++
++    return splitted_aliases
++
++
++def _prepare_aliases(splitted_aliases: pd.DataFrame) -> pd.DataFrame:
++    prepared_aliases = splitted_aliases[["locode", "alias_text"]].copy()
++
++    # strip names
++    prepared_aliases["alias_text"] = prepared_aliases["alias_text"].str.strip()
++
++    # remove empty names
++    prepared_aliases = prepared_aliases[prepared_aliases["alias_text"] != ""].copy()
++
++    # remove duplicates
++    prepared_aliases = prepared_aliases.drop_duplicates(
++        subset=["locode", "alias_text"]
++    ).reset_index(drop=True)
++
++    return prepared_aliases
++
++
++def resolve_aliases(
++    merged_codes: pd.DataFrame, 
++    verbose: bool = False,
++) -> pd.DataFrame:
++
++    aliases = _build_aliases(merged_codes=merged_codes)
++
++    log_df_info(aliases, "Aliases DataFrame", verbose=verbose)
++
++    splitted_aliases = _split_parenthesized_aliases(aliases=aliases)
++
++    log_df_info(splitted_aliases, "Splitted Aliases DataFrame", verbose=verbose)
++
++    prepared_splitted_aliases = _prepare_aliases(splitted_aliases=splitted_aliases)
++
++    log_df_info(prepared_splitted_aliases, "Prepared Splitted Aliases DataFrame", verbose=verbose)
++
++    return prepared_splitted_aliases
+diff --git a/src/dataset/prepare/locations.py b/src/dataset/prepare/locations.py
+new file mode 100644
+index 0000000..8675cc0
+--- /dev/null
++++ b/src/dataset/prepare/locations.py
+@@ -0,0 +1,37 @@
++import pandas as pd
++
++from src.dataset.logging import log_df_info
++
++
++def _build_locations(
++    merged_codes: pd.DataFrame,
++) -> pd.DataFrame:
++    locations = merged_codes.drop(columns=["name", "name_wo_diacritics"]).copy()
++
++    return locations
++
++
++def _prepare_locations(
++    locations: pd.DataFrame,
++) -> pd.DataFrame:
++    prepared_locations = locations.copy()
++
++    # remove full locode duplicates
++    prepared_locations = prepared_locations.drop_duplicates(subset=["locode"])
++
++    return prepared_locations
++
++
++def resolve_locations(
++    merged_codes: pd.DataFrame, 
++    verbose: bool = False,
++) -> pd.DataFrame:
++    locations = _build_locations(merged_codes)
++
++    log_df_info(locations, "Locations DataFrame", verbose=verbose)
++
++    prepared_locations = _prepare_locations(locations)
++
++    log_df_info(prepared_locations, "Prepared Locations DataFrame", verbose=verbose)
++
++    return prepared_locations
+diff --git a/src/dataset/prepare/split.py b/src/dataset/prepare/split.py
+new file mode 100644
+index 0000000..19da31f
+--- /dev/null
++++ b/src/dataset/prepare/split.py
+@@ -0,0 +1,45 @@
++import re
++import pandas as pd
++
++_PARENTHESIZED_NAME_PATTERN = re.compile(r"^\s*(.*?)\s*\((.*?)\)\s*$")
++
++
++def _split_parenthesized_name_with_labels(
++    name: str,
++) -> list[tuple[str, str]]:
++    name = name.strip()
++    if not name:
++        return []
++
++    result: list[tuple[str, str]] = [(name, "full")]
++
++    match = _PARENTHESIZED_NAME_PATTERN.match(name)
++    if not match:
++        return result
++
++    left = match.group(1).strip()
++    inner = match.group(2).strip()
++
++    if left:
++        result.append((left, "paren_left"))
++
++    if inner:
++        result.append((inner, "paren_inner"))
++
++    return result
++
++
++def build_splitted_rows(
++    aliases: pd.DataFrame,
++) -> list[tuple[str, str, str, str]]:
++    splitted_rows: list[tuple[str, str, str, str]] = []
++
++    def add_rows_for(locode: str, source_field: str, field_value: str) -> None:
++        for alias_text, alias_kind in _split_parenthesized_name_with_labels(field_value):
++            splitted_rows.append((locode, source_field, alias_text, alias_kind))
++
++    for locode, name, name_wo_diacritics in aliases.itertuples(index=False, name=None):
++        add_rows_for(locode, "name", name)
++        add_rows_for(locode, "name_wo_diacritics", name_wo_diacritics)
++
++    return splitted_rows

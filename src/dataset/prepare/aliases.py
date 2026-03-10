@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.dataset.logging import log_df_info
+from src.dataset.inspect import inspect_df_info
 from src.dataset.prepare.split import build_splitted_rows
 
 
@@ -45,14 +45,14 @@ def resolve_aliases(
 
     aliases = _build_aliases(merged_codes=merged_codes)
 
-    log_df_info(aliases, "Aliases DataFrame", verbose=verbose)
+    inspect_df_info(aliases, "Aliases DataFrame", verbose=verbose)
 
     splitted_aliases = _split_parenthesized_aliases(aliases=aliases)
 
-    log_df_info(splitted_aliases, "Splitted Aliases DataFrame", verbose=verbose)
+    inspect_df_info(splitted_aliases, "Splitted Aliases DataFrame", verbose=verbose)
 
     prepared_splitted_aliases = _prepare_aliases(splitted_aliases=splitted_aliases)
 
-    log_df_info(prepared_splitted_aliases, "Prepared Splitted Aliases DataFrame", verbose=verbose)
+    inspect_df_info(prepared_splitted_aliases, "Prepared Splitted Aliases DataFrame", verbose=verbose)
 
     return prepared_splitted_aliases

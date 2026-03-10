@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.dataset.logging import log_df_info
+from src.dataset.inspect import inspect_df_info
 from src.dataset.io.csv import find_csv_files, read_csv_file
 
 
@@ -58,10 +58,10 @@ def read_prepared_codes(
 ) -> pd.DataFrame:
     codes = _read_codes(csv_dir=csv_dir, filename_substring=filename_substring)
 
-    log_df_info(codes, "Codes", verbose=verbose)
+    inspect_df_info(codes, "Codes", verbose=verbose)
 
     prepared_codes = _prepare_codes(codes=codes)
 
-    log_df_info(prepared_codes, "Prepared Codes", verbose=verbose)
+    inspect_df_info(prepared_codes, "Prepared Codes", verbose=verbose)
 
     return prepared_codes

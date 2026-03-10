@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.dataset.logging import log_df_info
+from src.dataset.inspect import inspect_df_info
 
 
 def _build_locations(
@@ -28,10 +28,10 @@ def resolve_locations(
 ) -> pd.DataFrame:
     locations = _build_locations(merged_codes)
 
-    log_df_info(locations, "Locations DataFrame", verbose=verbose)
+    inspect_df_info(locations, "Locations DataFrame", verbose=verbose)
 
     prepared_locations = _prepare_locations(locations)
 
-    log_df_info(prepared_locations, "Prepared Locations DataFrame", verbose=verbose)
+    inspect_df_info(prepared_locations, "Prepared Locations DataFrame", verbose=verbose)
 
     return prepared_locations
