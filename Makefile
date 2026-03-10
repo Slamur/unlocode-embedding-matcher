@@ -1,8 +1,14 @@
+.PHONY: venv install install-dev
+.PHONY: sync reset-venv
 .PHONY: help format lint typecheck test precommit check
 .PHONY: download-dataset ingest-dataset prepare-dataset build-dataset
 .PHONY: clean
 
-PYTHON := python -m
+
+VENV := .venv
+PIP := $(VENV)/bin/pip
+PYTHON := $(VENV)/bin/python
+
 SRC := src
 SCRIPTS := scripts
 
@@ -23,6 +29,28 @@ help:
 	@echo ""
 	@echo "Utility:"
 	@echo "  make clean            - remove common Python cache files"
+
+# ---------------------
+# Environment
+# ---------------------
+
+venv:
+	python -m venv $(VENV)
+
+install: venv
+	$(PIP) install -r requirements.txt
+
+install-dev: venv
+	$(PIP) install -r requirements-dev.txt
+	$(VENV)/bin/pre-commit install
+
+sync:
+	$(PIP) install --upgrade pip
+	$(PIP) install -r requirements-dev.txt
+
+reset-venv:
+	rm -rf $(VENV)
+	make install-dev
 
 # ---------------------
 # Development
@@ -51,13 +79,13 @@ check: lint typecheck test
 # ---------------------
 
 download-dataset:
-	$(PYTHON) $(SCRIPTS).download_dataset
+	$(PYTHON) -m $(SCRIPTS).download_dataset
 
 ingest-dataset:
-	$(PYTHON) $(SCRIPTS).ingest_dataset
+	$(PYTHON) -m $(SCRIPTS).ingest_dataset
 
 prepare-dataset:
-	$(PYTHON) $(SCRIPTS).prepare_dataset
+	$(PYTHON) -m $(SCRIPTS).prepare_dataset
 
 build-dataset: download-dataset ingest-dataset prepare-dataset
 
