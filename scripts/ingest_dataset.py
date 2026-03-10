@@ -1,7 +1,7 @@
 from src.config.paths import INTERIM_DIR, RAW_DIR
-from src.dataset.ingest.codes import read_codes_table
-from src.dataset.ingest.merge import build_merged_table
-from src.dataset.ingest.subdivisions import read_subdivisions_table
+from src.dataset.ingestion.codes import read_codes_table
+from src.dataset.ingestion.merge import build_merged_table
+from src.dataset.ingestion.subdivisions import read_subdivisions_table
 
 
 def main() -> None:
