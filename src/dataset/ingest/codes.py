@@ -26,7 +26,7 @@ def _read_codes(
     csv_dir: Path, 
     filename_substring: str,
 ) -> pd.DataFrame:
-    part_files = find_csv_files(directory=csv_dir, filename_substring=filename_substring)
+    part_files = find_csv_files(directory=csv_dir, filename_substring=filename_substring, fail_on_empty=True)
 
     parts = [read_csv_file(path=path, column_names=_UNLOCODE_COLUMNS) for path in part_files]
     return pd.concat(parts, ignore_index=True)

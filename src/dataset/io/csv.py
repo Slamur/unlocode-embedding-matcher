@@ -10,10 +10,11 @@ DEFAULT_ENCODING = "cp1252"
 def find_csv_files(
     directory: Path, 
     filename_substring: str,
+    fail_on_empty: bool = True,
 ) -> Sequence[Path]:
     files = sorted(directory.glob(f"*{filename_substring}*.csv"))
 
-    if not files:
+    if fail_on_empty and not files:
         raise RuntimeError(f"No files matching substring '{filename_substring}' found in {directory}")
     
     return files
