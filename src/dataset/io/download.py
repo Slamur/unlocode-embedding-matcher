@@ -1,13 +1,13 @@
-import requests
 from pathlib import Path
 
+import requests
 
 _STREAM_CHUNK_SIZE = 8192
 
 
 def _download_stream(
-    response: requests.Response, 
-    destination: Path, 
+    response: requests.Response,
+    destination: Path,
     chunk_size: int = _STREAM_CHUNK_SIZE,
 ):
     with open(destination, "wb") as f:
@@ -16,8 +16,8 @@ def _download_stream(
 
 
 def download(
-    url: str, 
-    destination_dir: Path, 
+    url: str,
+    destination_dir: Path,
     destination_filename: str,
 ) -> Path:
     print(f"Downloading {destination_filename} from {url} to {destination_dir}")

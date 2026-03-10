@@ -2,8 +2,9 @@ import pandas as pd
 
 from src.dataset.inspect import inspect_df_info
 
+
 def _merge_codes_with_subdivisions(
-    codes: pd.DataFrame, 
+    codes: pd.DataFrame,
     subdivisions: pd.DataFrame,
 ) -> pd.DataFrame:
     merged_codes = codes.merge(
@@ -29,8 +30,8 @@ def _prepare_merged_codes(
 
 
 def build_merged_table(
-    codes: pd.DataFrame, 
-    subdivisions: pd.DataFrame, 
+    codes: pd.DataFrame,
+    subdivisions: pd.DataFrame,
     verbose: bool = False,
 ) -> pd.DataFrame:
     merged_codes = _merge_codes_with_subdivisions(codes=codes, subdivisions=subdivisions)

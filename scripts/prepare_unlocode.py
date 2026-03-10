@@ -1,15 +1,16 @@
 import pandas as pd
 
 from src.config.paths import INTERIM_DIR, PROCESSED_DIR
-from src.dataset.prepare.locations import build_locations_table
 from src.dataset.prepare.aliases import build_aliases_table
+from src.dataset.prepare.locations import build_locations_table
+
 
 def main() -> None:
 
     merged_codes_path = INTERIM_DIR / "merged_codes.parquet"
     if not merged_codes_path.exists():
         raise FileNotFoundError(f"Expected merged codes file not found at: {merged_codes_path}")
-    
+
     merged_codes = pd.read_parquet(merged_codes_path)
 
     locations = build_locations_table(merged_codes=merged_codes)
@@ -24,7 +25,7 @@ def main() -> None:
     print(f"Saved locations to: {locations_path}")
     print(f"Shape: {locations.shape}")
 
-    print(f"Saved aliases to: {aliases_path}")    
+    print(f"Saved aliases to: {aliases_path}")
     print(f"Shape: {aliases.shape}")
 
 

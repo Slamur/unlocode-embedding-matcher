@@ -2,7 +2,6 @@ from src.config.paths import RAW_DIR
 from src.dataset.io.download import download
 from src.dataset.io.zip import unzip
 
-
 _URL = "https://service.unece.org/trade/locode/loc242csv.zip"
 
 _ZIP_FILENAME = "unlocode.zip"
