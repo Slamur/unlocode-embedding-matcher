@@ -56,11 +56,11 @@ def read_prepared_codes(
     filename_substring: str, 
     verbose: bool = False,
 ) -> pd.DataFrame:
-    codes = _read_codes(csv_dir, filename_substring)
+    codes = _read_codes(csv_dir=csv_dir, filename_substring=filename_substring)
 
     log_df_info(codes, "Codes", verbose=verbose)
 
-    prepared_codes = _prepare_codes(codes)
+    prepared_codes = _prepare_codes(codes=codes)
 
     log_df_info(prepared_codes, "Prepared Codes", verbose=verbose)
 

@@ -4,9 +4,9 @@ from src.dataset.logging import log_df_info
 
 
 def _build_locations(
-    merged: pd.DataFrame,
+    merged_codes: pd.DataFrame,
 ) -> pd.DataFrame:
-    locations = merged.drop(columns=["name", "name_wo_diacritics"]).copy()
+    locations = merged_codes.drop(columns=["name", "name_wo_diacritics"]).copy()
 
     return locations
 
@@ -23,10 +23,10 @@ def _prepare_locations(
 
 
 def resolve_locations(
-    merged: pd.DataFrame, 
+    merged_codes: pd.DataFrame, 
     verbose: bool = False,
 ) -> pd.DataFrame:
-    locations = _build_locations(merged)
+    locations = _build_locations(merged_codes)
 
     log_df_info(locations, "Locations DataFrame", verbose=verbose)
 

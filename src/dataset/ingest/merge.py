@@ -3,39 +3,39 @@ import pandas as pd
 from src.dataset.logging import log_df_info
 
 def _merge_codes_with_subdivisions(
-    codes_df: pd.DataFrame, 
-    subdivisions_df: pd.DataFrame,
+    codes: pd.DataFrame, 
+    subdivisions: pd.DataFrame,
 ) -> pd.DataFrame:
-    merged_df = codes_df.merge(
-        subdivisions_df,
+    merged_codes = codes.merge(
+        subdivisions,
         how="left",
         left_on=["country", "subdivision"],
         right_on=["country", "subdivision_code"],
         suffixes=("", "_subdiv"),
     )
 
-    return merged_df
+    return merged_codes
 
 
-def _prepare_merged_df(
-    merged_df: pd.DataFrame,
+def _prepare_merged_codes(
+    merged_codes: pd.DataFrame,
 ) -> pd.DataFrame:
-    prepared_merged_df = merged_df.copy()
+    prepared_merged_codes = merged_codes.copy()
 
     for col in ["subdivision_code", "subdivision_name", "subdivision_type"]:
-        prepared_merged_df[col] = prepared_merged_df[col].fillna("")
+        prepared_merged_codes[col] = prepared_merged_codes[col].fillna("")
 
-    return prepared_merged_df
+    return prepared_merged_codes
 
 
 def merge_and_prepare(
-    codes_df: pd.DataFrame, 
-    subdivisions_df: pd.DataFrame, 
+    codes: pd.DataFrame, 
+    subdivisions: pd.DataFrame, 
     verbose: bool = False,
 ) -> pd.DataFrame:
-    merged_df = _merge_codes_with_subdivisions(codes_df, subdivisions_df)
-    prepared_merged_df = _prepare_merged_df(merged_df)
+    merged_codes = _merge_codes_with_subdivisions(codes=codes, subdivisions=subdivisions)
+    prepared_merged_codes = _prepare_merged_codes(merged_codes=merged_codes)
 
-    log_df_info(merged_df, "Merged DataFrame", verbose=verbose)
+    log_df_info(merged_codes, "Merged DataFrame", verbose=verbose)
 
-    return prepared_merged_df
+    return prepared_merged_codes
