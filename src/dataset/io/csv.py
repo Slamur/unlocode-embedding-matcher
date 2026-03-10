@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 
-DEFAULT_ENCODING = "cp1252"
+_DEFAULT_ENCODING = "cp1252"
 
 
 def find_csv_files(
@@ -23,7 +23,7 @@ def find_csv_files(
 def read_csv_file(
     path: Path, 
     column_names: list[str] | None = None, 
-    encoding: str = DEFAULT_ENCODING,
+    encoding: str = _DEFAULT_ENCODING,
 ) -> pd.DataFrame:
     return pd.read_csv(
         path,

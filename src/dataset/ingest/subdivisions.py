@@ -6,7 +6,7 @@ from src.dataset.inspect import inspect_df_info
 from src.dataset.io.csv import find_csv_files, read_csv_file
 
 
-SUBDIVISION_COLUMNS = [
+_SUBDIVISION_COLUMNS = [
     "country",
     "subdivision_code",
     "subdivision_name",
@@ -20,7 +20,7 @@ def _read_subdivisions(
 ) -> pd.DataFrame:
     subdivision_files = find_csv_files(directory=csv_dir, filename_substring=filename_substring, fail_on_empty=True)
 
-    return read_csv_file(path=subdivision_files[0], column_names=SUBDIVISION_COLUMNS)
+    return read_csv_file(path=subdivision_files[0], column_names=_SUBDIVISION_COLUMNS)
 
 
 def _prepare_subdivisions(
