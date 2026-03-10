@@ -18,7 +18,7 @@ def _read_subdivisions(
     csv_dir: Path, 
     filename_substring: str,
 ) -> pd.DataFrame:
-    subdivision_files = find_csv_files(directory=csv_dir, filename_substring=filename_substring)
+    subdivision_files = find_csv_files(directory=csv_dir, filename_substring=filename_substring, fail_on_empty=True)
 
     return read_csv_file(path=subdivision_files[0], column_names=SUBDIVISION_COLUMNS)
 

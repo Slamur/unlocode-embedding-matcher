@@ -22,7 +22,10 @@ def main() -> None:
     aliases.to_parquet(aliases_path, index=False)
 
     print(f"Saved locations to: {locations_path}")
-    print(f"Saved aliases to: {aliases_path}")
+    print(f"Shape: {locations.shape}")
+
+    print(f"Saved aliases to: {aliases_path}")    
+    print(f"Shape: {aliases.shape}")
 
 
 if __name__ == "__main__":
