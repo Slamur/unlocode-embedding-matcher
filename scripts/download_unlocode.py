@@ -1,54 +1,18 @@
-import requests
-import zipfile
-from pathlib import Path
-
 from src.config.paths import RAW_DIR
+from src.dataset.io.download import download
+from src.dataset.io.zip import unzip
 
 
 _URL = "https://service.unece.org/trade/locode/loc242csv.zip"
 
 _ZIP_FILENAME = "unlocode.zip"
 
-_STREAM_CHUNK_SIZE = 8192
-
-
-def _download_stream(response: requests.Response, destination: Path, chunk_size: int = _STREAM_CHUNK_SIZE):
-    with open(destination, "wb") as f:
-        for chunk in response.iter_content(chunk_size=chunk_size):
-            f.write(chunk)
-
-
-def _download_zip(url: str = _URL, destination_dir: Path = RAW_DIR) -> Path:
-    print(f"Downloading UN/LOCODE dataset from {url} to {destination_dir}")
-
-    destination_dir.mkdir(parents=True, exist_ok=True)
-
-    destination = destination_dir / _ZIP_FILENAME
-
-    if destination.exists():
-        print(f"File {destination} already exists. Skipping download.")
-        return destination
-
-    with requests.get(url, stream=True) as response:
-        response.raise_for_status()
-
-        _download_stream(response, destination, chunk_size=_STREAM_CHUNK_SIZE)
-
-    return destination
-
-
-def _unzip(source: Path, dest: Path = RAW_DIR):
-    print(f"Extracting dataset from {source} to {dest}")
-
-    with zipfile.ZipFile(source, "r") as z:
-        z.extractall(dest)
-
 
 def main():
     destination_dir = RAW_DIR
 
-    zip_filename = _download_zip(destination_dir=destination_dir)
-    _unzip(source=zip_filename, dest=destination_dir)
+    zip_path = download(url=_URL, destination_dir=RAW_DIR, destination_filename=_ZIP_FILENAME)
+    unzip(source=zip_path, dest=RAW_DIR)
 
     print("Dataset ready in", destination_dir)
 
