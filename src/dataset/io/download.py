@@ -27,7 +27,7 @@ def download(
     destination = destination_dir / destination_filename
 
     if destination.exists():
-        print(f"File {destination} already exists. Skipping download.")
+        print(f"Skipping download: file {destination} already exists.")
         return destination
 
     with requests.get(url, stream=True) as response:
