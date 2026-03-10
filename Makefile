@@ -67,7 +67,7 @@ typecheck:
 	mypy $(SRC)
 
 test:
-	pytest
+	$(PYTHON) -m pytest -v tests
 
 precommit:
 	pre-commit run --all-files
