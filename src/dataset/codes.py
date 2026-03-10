@@ -3,10 +3,10 @@ from pathlib import Path
 import pandas as pd
 
 from src.dataset.logging import log_df_info
-from src.dataset.io import find_csv_files, read_csv_file
+from src.dataset.io.csv import find_csv_files, read_csv_file
 
 
-UNLOCODE_COLUMNS = [
+_UNLOCODE_COLUMNS = [
     "change",
     "country",
     "code",
@@ -25,7 +25,7 @@ UNLOCODE_COLUMNS = [
 def _read_codes(csv_dir: Path, part_substring: str) -> pd.DataFrame:
     part_files = find_csv_files(csv_dir, part_substring)
 
-    parts = [read_csv_file(path, column_names=UNLOCODE_COLUMNS) for path in part_files]
+    parts = [read_csv_file(path, column_names=_UNLOCODE_COLUMNS) for path in part_files]
     return pd.concat(parts, ignore_index=True)
 
 

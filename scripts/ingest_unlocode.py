@@ -4,7 +4,7 @@ import pandas as pd
 
 from src.config.paths import RAW_DIR, INTERIM_DIR
 from src.dataset.logging import log_df_info
-from src.dataset.io import *
+from src.dataset.io.csv import *
 from src.dataset.codes import read_prepared_codes
 
 SUBDIVISION_COLUMNS = [
