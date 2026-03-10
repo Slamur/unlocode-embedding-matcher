@@ -18,7 +18,7 @@ help:
 	@echo "Pipeline:"
 	@echo "  make download-dataset - download raw UN/LOCODE data"
 	@echo "  make ingest-dataset   - ingest raw data into intermediate format"
-	@echo "  make prepare-dataset  - prepare final dataset for training"
+	@echo "  make prepare-dataset  - prepare final dataset for retrieval and embedding"
 	@echo "  make build-dataset    - run full dataset pipeline"
 	@echo ""
 	@echo "Utility:"
