@@ -156,12 +156,6 @@ def main() -> None:
     aliases_df = _AliasesResolver.resolve_aliases(merged_codes_df)
     splitted_aliases_df = _AliasesSplitter.split_aliases(aliases_df)
 
-    print("\nAliases for BEBRU:")
-    print(aliases_df[aliases_df["locode"] == "BEBRU"].to_string())
-
-    print("\nSplitted Aliases for BEBRU:")
-    print(splitted_aliases_df[splitted_aliases_df["locode"] == "BEBRU"].to_string())
-
     locations_path = PROCESSED_DIR / "unlocode_locations.parquet"
     aliases_path = PROCESSED_DIR / "unlocode_aliases.parquet"
 
