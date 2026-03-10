@@ -1,25 +1,11 @@
-from collections.abc import Sequence
 from pathlib import Path
 
 import pandas as pd
 
 from src.config.paths import RAW_DIR, INTERIM_DIR
 from src.dataset.logging import log_df_info
-
-UNLOCODE_COLUMNS = [
-    "change",
-    "country",
-    "code",
-    "name",
-    "name_wo_diacritics",
-    "subdivision",
-    "function",
-    "status",
-    "date",
-    "iata",
-    "coordinates",
-    "remarks",
-]
+from src.dataset.io import *
+from src.dataset.codes import read_prepared_codes
 
 SUBDIVISION_COLUMNS = [
     "country",
@@ -29,74 +15,15 @@ SUBDIVISION_COLUMNS = [
 ]
 
 
-def _find_csv_files(directory: Path, substring: str) -> Sequence[Path]:
-    files = sorted(directory.glob(f"*{substring}*.csv"))
-
-    if not files:
-        raise RuntimeError(f"No files matching substring '{substring}' found in {directory}")
-    
-    return files
-
-
-def _read_csv_file(path: Path, column_names: list[str] | None = None) -> pd.DataFrame:
-    return pd.read_csv(
-        path,
-        header=None,
-        names=column_names,
-        dtype=str,
-        keep_default_na=False,
-        encoding="cp1252",
-    )
-
-
-class _CodesPreparer:
-
-    @staticmethod
-    def _read_codes(csv_dir: Path = RAW_DIR) -> pd.DataFrame:
-        part_files = _find_csv_files(csv_dir, "CodeListPart")
-
-        parts = [_read_csv_file(path, column_names=UNLOCODE_COLUMNS) for path in part_files]
-        return pd.concat(parts, ignore_index=True)
-
-    @staticmethod
-    def _prepare_codes_df(codes_df: pd.DataFrame) -> pd.DataFrame:
-        prepared_codes_df = codes_df.copy()
-
-        # pure string columns
-        for col in ("country", "code", "name", "name_wo_diacritics", "subdivision"):
-            prepared_codes_df[col] = prepared_codes_df[col].str.strip()
-
-        # filter columns without country and/or code
-        prepared_codes_df = prepared_codes_df[(prepared_codes_df["country"] != "") & (prepared_codes_df["code"] != "")].copy()
-
-        # generate locode columns
-        prepared_codes_df["locode"] = prepared_codes_df["country"] + prepared_codes_df["code"]
-        prepared_codes_df["locode_display"] = prepared_codes_df["country"] + " " + prepared_codes_df["code"]
-
-        return prepared_codes_df
-
-    @staticmethod
-    def read_prepared_codes_df(verbose: bool = False) -> pd.DataFrame:
-        codes_df = _CodesPreparer._read_codes()
-
-        log_df_info(codes_df, "Codes", verbose=verbose)
-
-        prepared_codes_df = _CodesPreparer._prepare_codes_df(codes_df)
-
-        log_df_info(prepared_codes_df, "Prepared Codes", verbose=verbose)
-
-        return prepared_codes_df
-
-
 class _SubdivisionsPreparer:
 
     @staticmethod
     def _read_subdivisions(csv_dir: Path = RAW_DIR) -> pd.DataFrame:
-        subdivision_files = _find_csv_files(csv_dir, "Subdivision")
+        subdivision_files = find_csv_files(csv_dir, "Subdivision")
         if not subdivision_files:
             raise RuntimeError(f"No subdivision CSV found in {csv_dir}")
 
-        return _read_csv_file(subdivision_files[0], column_names=SUBDIVISION_COLUMNS)
+        return read_csv_file(subdivision_files[0], column_names=SUBDIVISION_COLUMNS)
 
     @staticmethod
     def _prepare_subdivisions(
@@ -158,7 +85,7 @@ class _DataMerger:
 
 def main() -> None:
 
-    codes_df = _CodesPreparer.read_prepared_codes_df()
+    codes_df = read_prepared_codes(RAW_DIR, 'CodeListPart')
     subdivisions_df = _SubdivisionsPreparer.read_prepared_subdivisions_df()
 
     merged_df = _DataMerger.merge_and_prepare(codes_df, subdivisions_df)
