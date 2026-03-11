@@ -59,3 +59,17 @@ ALIASES_SCHEMA = DataFrameSchema(
     strict=False,
     coerce=True,
 )
+
+SEARCH_TEXTS_SCHEMA = DataFrameSchema(
+    columns={
+        "locode": locode_column(),
+        "alias_text": required_string_column(),
+        "country": required_string_column(),
+        "subdivision_name": optional_string_column(),
+        "search_text_kind": required_string_column(),
+        "search_text": required_string_column(),
+    },
+    unique=["locode", "search_text"],
+    strict=False,
+    coerce=True,
+)
