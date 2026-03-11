@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 from pandera.errors import SchemaErrors
 
-from src.dataset.validation.validate import validate_locations
+from src.dataset.validation.validate_locations import validate_locations
 
 
 def test_validate_locations_accepts_valid_dataframe() -> None:

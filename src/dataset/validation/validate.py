@@ -3,8 +3,6 @@ from collections.abc import Iterable
 import pandas as pd
 import pandera.pandas as pa
 
-from src.dataset.validation.schemas import ALIASES_SCHEMA, LOCATIONS_SCHEMA
-
 
 def _normalize_string_column(df: pd.DataFrame, column: str) -> None:
     if column not in df.columns:
@@ -48,76 +46,12 @@ def _validate_with_pandera(schema: pa.DataFrameSchema, df: pd.DataFrame) -> pd.D
     return schema.validate(df, lazy=True)
 
 
-def _ensure_valid_locodes(locations: pd.DataFrame, df_name: str) -> None:
-    expected_locode = locations["country"] + locations["code"]
-    invalid_mask = locations["locode"] != expected_locode
-    invalid_mask = invalid_mask.fillna(False)
-
-    if invalid_mask.any():
-        invalid_rows = locations.loc[invalid_mask, ["locode", "country", "code"]].head(10)
-        preview = invalid_rows.to_dict(orient="records")
-        raise ValueError(
-            f"{df_name}.locode must be equal to country + code; " f"examples: {preview}"
-        )
-
-
-def validate_locations(locations: pd.DataFrame) -> pd.DataFrame:
-    result = _normalize_string_columns(
-        locations,
-        [
-            "locode",
-            "country",
-            "code",
-            "subdivision_code",
-            "subdivision_name",
-        ],
-    )
-
-    _ensure_no_empty_strings(
-        result,
-        ["locode", "country", "code"],
-        df_name="locations",
-    )
-
-    result = _validate_with_pandera(LOCATIONS_SCHEMA, result)
-
-    _ensure_valid_locodes(result, df_name="locations")
-
-    return result
-
-
-def _ensure_same_locodes(aliases: pd.DataFrame, locations: pd.DataFrame) -> None:
+def _ensure_same_locodes(df: pd.DataFrame, locations: pd.DataFrame, *, df_name: str) -> None:
     location_locodes = set(locations["locode"])
-    missing_mask = ~aliases["locode"].isin(location_locodes)
+    missing_mask = ~df["locode"].isin(location_locodes)
     missing_mask = missing_mask.fillna(False)
 
     if missing_mask.any():
-        missing_codes = sorted(aliases.loc[missing_mask, "locode"].dropna().unique())
+        missing_codes = sorted(df.loc[missing_mask, "locode"].dropna().unique())
         preview = missing_codes[:10]
-        raise ValueError("aliases contain locodes absent from locations; " f"examples: {preview}")
-
-
-def validate_aliases(
-    aliases: pd.DataFrame,
-    locations: pd.DataFrame | None = None,
-) -> pd.DataFrame:
-    result = _normalize_string_columns(
-        aliases,
-        [
-            "locode",
-            "alias_text",
-        ],
-    )
-
-    _ensure_no_empty_strings(
-        result,
-        ["locode", "alias_text"],
-        df_name="aliases",
-    )
-
-    result = _validate_with_pandera(ALIASES_SCHEMA, result)
-
-    if locations is not None:
-        _ensure_same_locodes(result, locations)
-
-    return result
+        raise ValueError(f"{df_name} contain locodes absent from locations; examples: {preview}")
