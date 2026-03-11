@@ -1,18 +1,28 @@
 import re
+import unicodedata
 
 import pandas as pd
 
 from src.dataset.inspect import inspect_df_info
 
-_NON_ALNUM_PATTERN = re.compile(r"[^0-9a-z]+")
+_NON_WORD_PATTERN = re.compile(r"[^\w]+", flags=re.UNICODE)
 _MULTI_SPACE_PATTERN = re.compile(r"\s+")
 
 
 def _normalize_search_text(text: str) -> str:
-    normalized = text.lower().strip()
-    normalized = _NON_ALNUM_PATTERN.sub(" ", normalized)
+    normalized = unicodedata.normalize("NFKC", text)
+
+    normalized = normalized.lower().strip()
+    normalized = _NON_WORD_PATTERN.sub(" ", normalized)
     normalized = _MULTI_SPACE_PATTERN.sub(" ", normalized)
+
     return normalized.strip()
+
+
+def _ascii_fold(text: str) -> str:
+    normalized = unicodedata.normalize("NFKD", text)
+    ascii_text = normalized.encode("ascii", "ignore").decode("ascii")
+    return ascii_text
 
 
 def _build_search_text_variants(
@@ -41,7 +51,11 @@ def _build_search_text_variants(
             )
         )
 
-    return variants
+    variants_with_ascii_fold = [
+        (f"{kind}_ascii_fold", _ascii_fold(text)) for kind, text in variants
+    ]
+
+    return variants + variants_with_ascii_fold
 
 
 def _build_search_text_rows(
