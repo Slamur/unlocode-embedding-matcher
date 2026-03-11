@@ -9,9 +9,10 @@ _ZIP_FILENAME = "unlocode.zip"
 
 def main():
     destination_dir = RAW_DIR
+    zip_path = destination_dir / _ZIP_FILENAME
 
-    zip_path = download(url=_URL, destination_dir=RAW_DIR, destination_filename=_ZIP_FILENAME)
-    unzip(source=zip_path, dest=RAW_DIR)
+    download(url=_URL, destination=zip_path)
+    unzip(source=zip_path)
 
     print("Dataset ready in", destination_dir)
 
