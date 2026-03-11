@@ -2,7 +2,7 @@ from pathlib import Path
 
 import requests
 
-from src.utils.paths import ensure_parent_dir_exists
+from src.utils.files import ensure_parent_dir_exists
 
 _STREAM_CHUNK_SIZE = 8192
 

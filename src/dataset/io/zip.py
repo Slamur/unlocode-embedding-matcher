@@ -1,7 +1,7 @@
 import zipfile
 from pathlib import Path
 
-from src.utils.paths import ensure_dir_exists
+from src.utils.files import ensure_dir_exists
 
 
 def unzip(
