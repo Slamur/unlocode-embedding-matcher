@@ -111,6 +111,7 @@ def _prepare_search_texts(
     prepared = prepared[prepared["search_text"] != ""].copy()
 
     # any alias_text is taken after drop
+    # retrieval-only table, so it's not a problem
     prepared = prepared.drop_duplicates(subset=["locode", "search_text"]).reset_index(drop=True)
 
     return prepared
