@@ -21,7 +21,6 @@ def main() -> None:
     search_texts = build_search_texts_table(
         aliases=aliases,
         locations=locations,
-        verbose=True,
     )
 
     locations = validate_locations(locations=locations)
