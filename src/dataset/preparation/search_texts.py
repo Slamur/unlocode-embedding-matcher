@@ -99,7 +99,10 @@ def _prepare_search_texts(
 
     # strip all columns
     prepared["alias_text"] = prepared["alias_text"].str.strip()
+
+    # TODO: add country name to/instead of country code
     prepared["country"] = prepared["country"].str.strip()
+
     prepared["subdivision_name"] = prepared["subdivision_name"].fillna("").str.strip()
     prepared["search_text_kind"] = prepared["search_text_kind"].str.strip()
     prepared["search_text"] = prepared["search_text"].str.strip()
