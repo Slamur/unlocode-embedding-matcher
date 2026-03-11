@@ -32,14 +32,16 @@ def main() -> None:
     search_texts_path = SEARCH_TEXTS_PATH
 
     save_parquet(df=locations, path=locations_path)
-    save_parquet(df=aliases, path=aliases_path)
-    save_parquet(df=search_texts, path=search_texts_path)
 
     print(f"Saved locations to: {locations_path}")
     print(f"Shape: {locations.shape}")
 
+    save_parquet(df=aliases, path=aliases_path)
+
     print(f"Saved aliases to: {aliases_path}")
     print(f"Shape: {aliases.shape}")
+
+    save_parquet(df=search_texts, path=search_texts_path)
 
     print(f"Saved search texts to: {search_texts_path}")
     print(f"Shape: {search_texts.shape}")

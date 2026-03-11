@@ -10,6 +10,7 @@ from src.config.paths import (
     SEARCH_TEXT_METADATA_PATH,
     SEARCH_TEXTS_PATH,
 )
+from src.dataset.inspect import inspect_df_info
 from src.embeddings.generate import EmbeddingBuildInfo, generate_embeddings
 from src.utils.files import ensure_parent_dir_exists, read_parquet, save_parquet
 
@@ -36,10 +37,21 @@ def main() -> None:
         normalize_embeddings=False,
     )
 
+    inspect_df_info(df=result.metadata, name="Embeddings Metadata", verbose=True)
+
     save_parquet(df=result.metadata, path=SEARCH_TEXT_METADATA_PATH)
 
+    print(f"Embeddings Metadata saved to: {SEARCH_TEXT_METADATA_PATH}")
+    print(f"Shape: {result.metadata.shape}")
+
     _save_embeddings(path=SEARCH_TEXT_EMBEDDINGS_PATH, embeddings=result.embeddings)
+
+    print(f"Embeddings saved to: {SEARCH_TEXT_EMBEDDINGS_PATH}")
+    print(f"Shape: {result.embeddings.shape}")
+
     _save_manifest(path=SEARCH_TEXT_EMBEDDINGS_MANIFEST_PATH, info=result.manifest)
+
+    print(f"Embeddings manifest saved to: {SEARCH_TEXT_EMBEDDINGS_MANIFEST_PATH}")
 
 
 if __name__ == "__main__":
