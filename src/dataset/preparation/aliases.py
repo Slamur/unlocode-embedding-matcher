@@ -1,7 +1,7 @@
 import pandas as pd
 
 from src.dataset.inspect import inspect_df_info
-from src.dataset.preparation.expand import build_expanded_rows
+from src.dataset.preparation.aliases_expand import build_expanded_rows
 
 
 def _build_aliases(

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.dataset.preparation.expand import (
+from src.dataset.preparation.aliases_expand import (
     _split_parenthesized_name_with_labels,
     build_expanded_rows,
 )
