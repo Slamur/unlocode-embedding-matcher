@@ -2,9 +2,9 @@ import pandas as pd
 
 from src.dataset.validation.schemas import LOCATIONS_SCHEMA
 from src.dataset.validation.validate import (
-    ensure_no_empty_strings,
-    normalize_string_columns,
-    validate_with_pandera,
+    _ensure_no_empty_strings,
+    _normalize_string_columns,
+    _validate_with_pandera,
 )
 
 
@@ -22,7 +22,7 @@ def _ensure_valid_locodes(locations: pd.DataFrame, df_name: str) -> None:
 
 
 def validate_locations(locations: pd.DataFrame) -> pd.DataFrame:
-    result = normalize_string_columns(
+    result = _normalize_string_columns(
         locations,
         [
             "locode",
@@ -33,13 +33,13 @@ def validate_locations(locations: pd.DataFrame) -> pd.DataFrame:
         ],
     )
 
-    ensure_no_empty_strings(
+    _ensure_no_empty_strings(
         result,
         ["locode", "country", "code"],
         df_name="locations",
     )
 
-    result = validate_with_pandera(LOCATIONS_SCHEMA, result)
+    result = _validate_with_pandera(LOCATIONS_SCHEMA, result)
 
     _ensure_valid_locodes(result, df_name="locations")
 

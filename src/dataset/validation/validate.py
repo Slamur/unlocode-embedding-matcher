@@ -4,7 +4,7 @@ import pandas as pd
 import pandera.pandas as pa
 
 
-def normalize_string_column(df: pd.DataFrame, column: str) -> None:
+def _normalize_string_column(df: pd.DataFrame, column: str) -> None:
     if column not in df.columns:
         return
 
@@ -17,14 +17,14 @@ def normalize_string_column(df: pd.DataFrame, column: str) -> None:
     df[column] = normalized
 
 
-def normalize_string_columns(df: pd.DataFrame, columns: Iterable[str]) -> pd.DataFrame:
+def _normalize_string_columns(df: pd.DataFrame, columns: Iterable[str]) -> pd.DataFrame:
     result = df.copy()
     for column in columns:
-        normalize_string_column(result, column)
+        _normalize_string_column(result, column)
     return result
 
 
-def ensure_no_empty_strings(df: pd.DataFrame, columns: Iterable[str], *, df_name: str) -> None:
+def _ensure_no_empty_strings(df: pd.DataFrame, columns: Iterable[str], *, df_name: str) -> None:
     errors: list[str] = []
 
     for column in columns:
@@ -42,11 +42,11 @@ def ensure_no_empty_strings(df: pd.DataFrame, columns: Iterable[str], *, df_name
         raise ValueError("; ".join(errors))
 
 
-def validate_with_pandera(schema: pa.DataFrameSchema, df: pd.DataFrame) -> pd.DataFrame:
+def _validate_with_pandera(schema: pa.DataFrameSchema, df: pd.DataFrame) -> pd.DataFrame:
     return schema.validate(df, lazy=True)
 
 
-def ensure_same_locodes(df: pd.DataFrame, locations: pd.DataFrame, *, df_name: str) -> None:
+def _ensure_same_locodes(df: pd.DataFrame, locations: pd.DataFrame, *, df_name: str) -> None:
     location_locodes = set(locations["locode"])
     missing_mask = ~df["locode"].isin(location_locodes)
     missing_mask = missing_mask.fillna(False)
