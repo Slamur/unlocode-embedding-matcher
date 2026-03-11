@@ -17,14 +17,16 @@ def main() -> None:
     merged_codes = pd.read_parquet(merged_codes_path)
 
     locations = build_locations_table(merged_codes=merged_codes)
+    locations = validate_locations(locations=locations)
+
     aliases = build_aliases_table(merged_codes=merged_codes)
+    aliases = validate_aliases(aliases=aliases, locations=locations)
+
     search_texts = build_search_texts_table(
         aliases=aliases,
         locations=locations,
     )
 
-    locations = validate_locations(locations=locations)
-    aliases = validate_aliases(aliases=aliases, locations=locations)
     search_texts = validate_search_texts(
         search_texts=search_texts,
         locations=locations,
