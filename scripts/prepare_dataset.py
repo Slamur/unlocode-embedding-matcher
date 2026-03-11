@@ -3,7 +3,8 @@ import pandas as pd
 from src.config.paths import INTERIM_DIR, PROCESSED_DIR
 from src.dataset.preparation.aliases import build_aliases_table
 from src.dataset.preparation.locations import build_locations_table
-from src.dataset.validation.validate import validate_aliases, validate_locations
+from src.dataset.validation.validate_aliases import validate_aliases
+from src.dataset.validation.validate_locations import validate_locations
 
 
 def main() -> None:
