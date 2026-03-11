@@ -44,3 +44,14 @@ def ensure_no_empty_strings(df: pd.DataFrame, columns: Iterable[str], *, df_name
 
 def validate_with_pandera(schema: pa.DataFrameSchema, df: pd.DataFrame) -> pd.DataFrame:
     return schema.validate(df, lazy=True)
+
+
+def ensure_same_locodes(df: pd.DataFrame, locations: pd.DataFrame, *, df_name: str) -> None:
+    location_locodes = set(locations["locode"])
+    missing_mask = ~df["locode"].isin(location_locodes)
+    missing_mask = missing_mask.fillna(False)
+
+    if missing_mask.any():
+        missing_codes = sorted(df.loc[missing_mask, "locode"].dropna().unique())
+        preview = missing_codes[:10]
+        raise ValueError(f"{df_name} contain locodes absent from locations; examples: {preview}")
