@@ -11,6 +11,9 @@ def find_csv_files(
     filename_substring: str,
     fail_on_empty: bool = True,
 ) -> Sequence[Path]:
+    if not directory.exists():
+        raise RuntimeError(f"Directory {directory} does not exist")
+
     files = sorted(directory.glob(f"*{filename_substring}*.csv"))
 
     if fail_on_empty and not files:
