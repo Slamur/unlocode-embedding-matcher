@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 from pandera.errors import SchemaErrors
 
-from src.dataset.validation.validate import validate_aliases
+from src.dataset.validation.validate_aliases import validate_aliases
 
 
 def test_validate_aliases_accepts_valid_dataframe() -> None:
