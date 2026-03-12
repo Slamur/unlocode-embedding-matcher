@@ -18,7 +18,7 @@ def require_file_exists(path: Path) -> Path:
         raise FileNotFoundError(f"Required file not found at: {path}")
 
     if not path.is_file():
-        raise FileNotFoundError(f"Expected a file but found a directory at: {path}")
+        raise FileNotFoundError(f"Expected file, found non-file path: {path}")
 
     return path
 

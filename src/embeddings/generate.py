@@ -32,11 +32,14 @@ def generate_embeddings(
     batch_size: int = DEFAULT_BATCH_SIZE,
     normalize_embeddings: bool = False,
 ) -> EmbeddingBuildResult:
+    if "search_text" not in metadata.columns:
+        raise ValueError("Metadata must contain 'search_text' column")
+
+    texts = metadata["search_text"].tolist()
+
     embedder = TextEmbedder(
         EmbedderConfig(model_name=MODEL_NAME),
     )
-
-    texts = metadata["search_text"].tolist()
 
     embeddings = embedder.encode(
         texts=texts,

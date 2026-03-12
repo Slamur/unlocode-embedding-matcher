@@ -20,8 +20,9 @@ def _validate_search_texts(search_texts: pd.DataFrame) -> None:
     if search_texts["search_text"].isna().any():
         raise ValueError("Column 'search_text' contains null values")
 
-    if not pd.api.types.is_string_dtype(search_texts["search_text"]):
-        raise ValueError("Column 'search_text' must have string dtype")
+    non_string_mask = ~search_texts["search_text"].map(lambda value: isinstance(value, str))
+    if non_string_mask.any():
+        raise ValueError("Column 'search_text' contains non-string values")
 
     empty_mask = search_texts["search_text"].str.strip().eq("")
     if empty_mask.any():
