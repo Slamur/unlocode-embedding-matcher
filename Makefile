@@ -2,6 +2,7 @@
 .PHONY: sync reset-venv
 .PHONY: help format lint typecheck test precommit check
 .PHONY: download-dataset ingest-dataset prepare-dataset build-dataset
+.PHONY: generate-embeddings
 .PHONY: clean
 
 
@@ -26,6 +27,7 @@ help:
 	@echo "  make ingest-dataset   - ingest raw data into intermediate format"
 	@echo "  make prepare-dataset  - prepare final dataset for retrieval and embedding"
 	@echo "  make build-dataset    - run full dataset pipeline"
+	@echo "  make generate-embeddings - generate embeddings for search texts"
 	@echo ""
 	@echo "Utility:"
 	@echo "  make clean            - remove common Python cache files"
@@ -88,6 +90,13 @@ prepare-dataset:
 	$(PYTHON) -m $(SCRIPTS).prepare_dataset
 
 build-dataset: download-dataset ingest-dataset prepare-dataset
+
+# ---------------------
+# Embedding pipeline
+# ---------------------
+
+generate-embeddings:
+	$(PYTHON) -m $(SCRIPTS).generate_embeddings
 
 # ---------------------
 # Utility
