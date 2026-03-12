@@ -9,8 +9,7 @@ def unzip(
     destination_dir: Path | None = None,
 ) -> None:
     if not source.exists():
-        print(f"Can't unzip from {source}: file not found")
-        return
+        raise FileNotFoundError(f"Can't unzip from {source}: file not found")
 
     if destination_dir is None:
         destination_dir = source.parent

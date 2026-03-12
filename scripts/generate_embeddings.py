@@ -48,7 +48,8 @@ def _artifacts_exist_and_valid(
     if not all(artifact_exists):
         if any(artifact_exists):
             raise RuntimeError(
-                "Found incomplete embedding artifacts." "Remove them manually and rerun the script."
+                "Found incomplete embedding artifacts. "
+                "Remove them manually and rerun the script."
             )
 
         return False

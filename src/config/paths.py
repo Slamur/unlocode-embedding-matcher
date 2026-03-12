@@ -30,7 +30,7 @@ SEARCH_TEXTS_PATH = PROCESSED_DIR / "unlocode_search_texts.parquet"
 
 # Embeddings paths
 
-ARTIFACTS_DIR = Path("artifacts")
+ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"
 
 EMBEDDINGS_DIR = ARTIFACTS_DIR / "embeddings"
 
