@@ -1,8 +1,4 @@
-import json
-from dataclasses import asdict
 from pathlib import Path
-
-import numpy as np
 
 from src.config.paths import (
     SEARCH_TEXT_EMBEDDINGS_MANIFEST_PATH,
@@ -10,9 +6,10 @@ from src.config.paths import (
     SEARCH_TEXT_METADATA_PATH,
     SEARCH_TEXTS_PATH,
 )
-from src.embeddings.generate import EmbeddingBuildInfo, generate_embeddings
+from src.embeddings.generate import generate_embeddings
+from src.embeddings.io import read_embeddings, read_manifest, save_embeddings, save_manifest
 from src.embeddings.metadata import generate_metadata
-from src.utils.files import ensure_parent_dir_exists, read_parquet, save_parquet
+from src.utils.files import read_parquet, save_parquet
 
 
 def _validate_existing_artifacts(
@@ -20,7 +17,7 @@ def _validate_existing_artifacts(
     embeddings_path: Path,
     manifest_path: Path,
 ) -> None:
-    embeddings = np.load(embeddings_path, mmap_mode="r")
+    embeddings = read_embeddings(path=embeddings_path)
     metadata = read_parquet(path=metadata_path)
 
     if embeddings.shape[0] != len(metadata):
@@ -29,11 +26,11 @@ def _validate_existing_artifacts(
             f"metadata rows = {len(metadata)}"
         )
 
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest = read_manifest(path=manifest_path)
 
-    if manifest["row_count"] != len(metadata):
+    if manifest.row_count != len(metadata):
         raise ValueError("Manifest row_count does not match metadata")
-    if manifest["embedding_dim"] != embeddings.shape[1]:
+    if manifest.embedding_dim != embeddings.shape[1]:
         raise ValueError("Manifest embedding_dim does not match embeddings")
 
 
@@ -63,20 +60,6 @@ def _valid_artifacts_exist(
     return True
 
 
-def _save_embeddings(path: Path, embeddings: np.ndarray) -> None:
-    ensure_parent_dir_exists(path=path)
-    np.save(path, embeddings)
-
-
-def _save_manifest(path: Path, info: EmbeddingBuildInfo) -> None:
-    ensure_parent_dir_exists(path=path)
-
-    path.write_text(
-        json.dumps(asdict(info), ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-
-
 def main() -> None:
     metadata_path = SEARCH_TEXT_METADATA_PATH
     embeddings_path = SEARCH_TEXT_EMBEDDINGS_PATH
@@ -101,12 +84,12 @@ def main() -> None:
     print(f"Embeddings Metadata saved to: {metadata_path}")
     print(f"Shape: {metadata.shape}")
 
-    _save_embeddings(path=embeddings_path, embeddings=result.embeddings)
+    save_embeddings(embeddings=result.embeddings, path=embeddings_path)
 
     print(f"Embeddings saved to: {embeddings_path}")
     print(f"Shape: {result.embeddings.shape}")
 
-    _save_manifest(path=manifest_path, info=result.manifest)
+    save_manifest(manifest=result.manifest, path=manifest_path)
 
     print(f"Embeddings manifest saved to: {manifest_path}")
 
