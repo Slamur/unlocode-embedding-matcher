@@ -34,7 +34,7 @@ def _validate_existing_artifacts(
         raise ValueError("Manifest embedding_dim does not match embeddings")
 
 
-def _valid_artifacts_exist(
+def _artifacts_exist_and_valid(
     metadata_path: Path = SEARCH_TEXTS_METADATA_PATH,
     embeddings_path: Path = SEARCH_TEXTS_EMBEDDINGS_PATH,
     manifest_path: Path = SEARCH_TEXTS_EMBEDDINGS_MANIFEST_PATH,
@@ -65,7 +65,7 @@ def main() -> None:
     embeddings_path = SEARCH_TEXTS_EMBEDDINGS_PATH
     manifest_path = SEARCH_TEXTS_EMBEDDINGS_MANIFEST_PATH
 
-    if _valid_artifacts_exist(
+    if _artifacts_exist_and_valid(
         metadata_path=metadata_path, embeddings_path=embeddings_path, manifest_path=manifest_path
     ):
         print("Skipping generation: all artifacts are valid and exist.")
