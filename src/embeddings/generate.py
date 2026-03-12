@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import numpy as np
+import pandas as pd
 
 from src.config.embeddings import (
     DEFAULT_BATCH_SIZE,
@@ -27,7 +28,7 @@ class EmbeddingBuildResult:
 
 
 def generate_embeddings(
-    texts: list[str],
+    metadata: pd.DataFrame,
     batch_size: int = DEFAULT_BATCH_SIZE,
     normalize_embeddings: bool = False,
 ) -> EmbeddingBuildResult:
@@ -35,18 +36,20 @@ def generate_embeddings(
         EmbedderConfig(model_name=MODEL_NAME),
     )
 
+    texts = metadata["search_text"].tolist()
+
     embeddings = embedder.encode(
         texts=texts,
         batch_size=batch_size,
         normalize_embeddings=normalize_embeddings,
     )
 
-    if len(embeddings) != len(texts):
-        raise ValueError(f"Embeddings count mismatch: {len(embeddings)} != {len(texts)}")
+    if len(embeddings) != len(metadata):
+        raise ValueError(f"Embeddings count mismatch: {len(embeddings)} != {len(metadata)}")
 
     build_info = EmbeddingBuildInfo(
         model_name=MODEL_NAME,
-        row_count=len(embeddings),
+        row_count=len(metadata),
         embedding_dim=int(embeddings.shape[1]),
         batch_size=batch_size,
         normalize_embeddings=normalize_embeddings,
