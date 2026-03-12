@@ -8,11 +8,15 @@ from src.config.paths import (
     SEARCH_TEXT_EMBEDDINGS_MANIFEST_PATH,
     SEARCH_TEXT_EMBEDDINGS_PATH,
     SEARCH_TEXT_METADATA_PATH,
-    SEARCH_TEXTS_PATH,
 )
-from src.dataset.inspect import inspect_df_info
 from src.embeddings.generate import EmbeddingBuildInfo, generate_embeddings
-from src.utils.files import ensure_parent_dir_exists, read_parquet, save_parquet
+from src.utils.files import ensure_parent_dir_exists, read_parquet
+
+
+def _load_texts(metadata_path: Path) -> list[str]:
+    metadata = read_parquet(path=metadata_path)
+
+    return metadata["search_text"].tolist()
 
 
 def _save_embeddings(path: Path, embeddings: np.ndarray) -> None:
@@ -30,19 +34,12 @@ def _save_manifest(path: Path, info: EmbeddingBuildInfo) -> None:
 
 
 def main() -> None:
-    search_texts = read_parquet(path=SEARCH_TEXTS_PATH)
+    texts = _load_texts(metadata_path=SEARCH_TEXT_METADATA_PATH)
 
     result = generate_embeddings(
-        search_texts=search_texts,
+        texts=texts,
         normalize_embeddings=False,
     )
-
-    inspect_df_info(df=result.metadata, name="Embeddings Metadata", verbose=True)
-
-    save_parquet(df=result.metadata, path=SEARCH_TEXT_METADATA_PATH)
-
-    print(f"Embeddings Metadata saved to: {SEARCH_TEXT_METADATA_PATH}")
-    print(f"Shape: {result.metadata.shape}")
 
     _save_embeddings(path=SEARCH_TEXT_EMBEDDINGS_PATH, embeddings=result.embeddings)
 
