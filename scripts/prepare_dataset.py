@@ -1,5 +1,3 @@
-import pandas as pd
-
 from src.config.paths import ALIASES_PATH, LOCATIONS_PATH, MERGED_CODES_PATH, SEARCH_TEXTS_PATH
 from src.dataset.preparation.aliases import build_aliases_table
 from src.dataset.preparation.locations import build_locations_table
@@ -7,15 +5,11 @@ from src.dataset.preparation.search_texts import build_search_texts_table
 from src.dataset.validation.validate_aliases import validate_aliases
 from src.dataset.validation.validate_locations import validate_locations
 from src.dataset.validation.validate_search_texts import validate_search_texts
-from src.utils.files import save_parquet
+from src.utils.files import read_parquet, save_parquet
 
 
 def main() -> None:
-    merged_codes_path = MERGED_CODES_PATH
-    if not merged_codes_path.exists():
-        raise FileNotFoundError(f"Expected merged codes file not found at: {merged_codes_path}")
-
-    merged_codes = pd.read_parquet(merged_codes_path)
+    merged_codes = read_parquet(path=MERGED_CODES_PATH)
 
     locations = build_locations_table(merged_codes=merged_codes)
     locations = validate_locations(locations=locations)
@@ -38,14 +32,16 @@ def main() -> None:
     search_texts_path = SEARCH_TEXTS_PATH
 
     save_parquet(df=locations, path=locations_path)
-    save_parquet(df=aliases, path=aliases_path)
-    save_parquet(df=search_texts, path=search_texts_path)
 
     print(f"Saved locations to: {locations_path}")
     print(f"Shape: {locations.shape}")
 
+    save_parquet(df=aliases, path=aliases_path)
+
     print(f"Saved aliases to: {aliases_path}")
     print(f"Shape: {aliases.shape}")
+
+    save_parquet(df=search_texts, path=search_texts_path)
 
     print(f"Saved search texts to: {search_texts_path}")
     print(f"Shape: {search_texts.shape}")

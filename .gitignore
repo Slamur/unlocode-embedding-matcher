@@ -1,5 +1,28 @@
-.venv/
+# Python
 __pycache__/
 *.pyc
+
+# virtual env
+.venv/
+
+# pytest / linters
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# notebooks
+.ipynb_checkpoints/
+
+# pipeline data
 data/
+
+# ML artifacts
+artifacts/
+
+# cache
+.cache/
+
+# temp
+*.tmp
+*.log
 *.diff

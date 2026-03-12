@@ -27,3 +27,13 @@ PROCESSED_DIR = DATA_DIR / "processed"
 LOCATIONS_PATH = PROCESSED_DIR / "unlocode_locations.parquet"
 ALIASES_PATH = PROCESSED_DIR / "unlocode_aliases.parquet"
 SEARCH_TEXTS_PATH = PROCESSED_DIR / "unlocode_search_texts.parquet"
+
+# Embeddings paths
+
+ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"
+
+EMBEDDINGS_DIR = ARTIFACTS_DIR / "embeddings"
+
+SEARCH_TEXTS_EMBEDDINGS_PATH = EMBEDDINGS_DIR / "search_texts_embeddings.npy"
+SEARCH_TEXTS_METADATA_PATH = EMBEDDINGS_DIR / "search_texts_metadata.parquet"
+SEARCH_TEXTS_EMBEDDINGS_MANIFEST_PATH = EMBEDDINGS_DIR / "search_texts_manifest.json"
