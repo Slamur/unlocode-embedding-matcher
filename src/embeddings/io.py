@@ -22,7 +22,9 @@ def read_embeddings(path: Path) -> np.ndarray:
 
 
 def save_manifest(
-    manifest: EmbeddingBuildInfo, path: Path, encoding: str = _DEFAULT_MANIFEST_ENCODING
+    manifest: EmbeddingBuildInfo,
+    path: Path,
+    encoding: str = _DEFAULT_MANIFEST_ENCODING,
 ) -> None:
     ensure_parent_dir_exists(path=path)
 
@@ -32,7 +34,11 @@ def save_manifest(
     )
 
 
-def read_manifest(path: Path, encoding: str = _DEFAULT_MANIFEST_ENCODING) -> EmbeddingBuildInfo:
-    dict_from_json = json.loads(path.read_text(encoding=encoding))
+def read_manifest(
+    path: Path,
+    encoding: str = _DEFAULT_MANIFEST_ENCODING,
+) -> EmbeddingBuildInfo:
+    require_file_exists(path=path)
 
+    dict_from_json = json.loads(path.read_text(encoding=encoding))
     return EmbeddingBuildInfo(**dict_from_json)
