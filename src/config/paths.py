@@ -34,6 +34,6 @@ ARTIFACTS_DIR = Path("artifacts")
 
 EMBEDDINGS_DIR = ARTIFACTS_DIR / "embeddings"
 
-SEARCH_TEXT_EMBEDDINGS_PATH = EMBEDDINGS_DIR / "search_text_embeddings.npy"
-SEARCH_TEXT_METADATA_PATH = EMBEDDINGS_DIR / "search_text_metadata.parquet"
-SEARCH_TEXT_EMBEDDINGS_MANIFEST_PATH = EMBEDDINGS_DIR / "manifest.json"
+SEARCH_TEXTS_EMBEDDINGS_PATH = EMBEDDINGS_DIR / "search_texts_embeddings.npy"
+SEARCH_TEXTS_METADATA_PATH = EMBEDDINGS_DIR / "search_texts_metadata.parquet"
+SEARCH_TEXTS_EMBEDDINGS_MANIFEST_PATH = EMBEDDINGS_DIR / "search_texts_manifest.json"

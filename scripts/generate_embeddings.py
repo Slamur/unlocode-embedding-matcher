@@ -1,9 +1,9 @@
 from pathlib import Path
 
 from src.config.paths import (
-    SEARCH_TEXT_EMBEDDINGS_MANIFEST_PATH,
-    SEARCH_TEXT_EMBEDDINGS_PATH,
-    SEARCH_TEXT_METADATA_PATH,
+    SEARCH_TEXTS_EMBEDDINGS_MANIFEST_PATH,
+    SEARCH_TEXTS_EMBEDDINGS_PATH,
+    SEARCH_TEXTS_METADATA_PATH,
     SEARCH_TEXTS_PATH,
 )
 from src.embeddings.generate import generate_embeddings
@@ -35,9 +35,9 @@ def _validate_existing_artifacts(
 
 
 def _valid_artifacts_exist(
-    metadata_path: Path = SEARCH_TEXT_METADATA_PATH,
-    embeddings_path: Path = SEARCH_TEXT_EMBEDDINGS_PATH,
-    manifest_path: Path = SEARCH_TEXT_EMBEDDINGS_MANIFEST_PATH,
+    metadata_path: Path = SEARCH_TEXTS_METADATA_PATH,
+    embeddings_path: Path = SEARCH_TEXTS_EMBEDDINGS_PATH,
+    manifest_path: Path = SEARCH_TEXTS_EMBEDDINGS_MANIFEST_PATH,
 ) -> bool:
     artifact_exists = [
         metadata_path.exists(),
@@ -61,9 +61,9 @@ def _valid_artifacts_exist(
 
 
 def main() -> None:
-    metadata_path = SEARCH_TEXT_METADATA_PATH
-    embeddings_path = SEARCH_TEXT_EMBEDDINGS_PATH
-    manifest_path = SEARCH_TEXT_EMBEDDINGS_MANIFEST_PATH
+    metadata_path = SEARCH_TEXTS_METADATA_PATH
+    embeddings_path = SEARCH_TEXTS_EMBEDDINGS_PATH
+    manifest_path = SEARCH_TEXTS_EMBEDDINGS_MANIFEST_PATH
 
     if _valid_artifacts_exist(
         metadata_path=metadata_path, embeddings_path=embeddings_path, manifest_path=manifest_path
