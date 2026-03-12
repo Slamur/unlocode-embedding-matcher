@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 
 @dataclass(frozen=True)
@@ -12,6 +11,14 @@ class EmbedderConfig:
 
 class TextEmbedder:
     def __init__(self, config: EmbedderConfig) -> None:
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError as exc:
+            raise ImportError(
+                "sentence-transformers is required to use TextEmbedder. "
+                "Install embedding dependencies first."
+            ) from exc
+
         self._config = config
         self._model = SentenceTransformer(
             model_name_or_path=config.model_name,

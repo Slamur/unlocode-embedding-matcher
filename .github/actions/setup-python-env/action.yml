@@ -1,0 +1,20 @@
+name: Setup Python environment
+description: Setup Python, restore pip cache, install project dependencies, and expose .venv binaries
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        cache: "pip"
+        cache-dependency-path: |
+          requirements.txt
+          requirements-dev.txt
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        make install-dev
+        echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"

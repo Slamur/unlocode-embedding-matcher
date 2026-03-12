@@ -1,4 +1,4 @@
-.PHONY: venv install install-dev
+.PHONY: venv install install-dev install-embed
 .PHONY: sync reset-venv
 .PHONY: help format lint typecheck test precommit check
 .PHONY: download-dataset ingest-dataset prepare-dataset build-dataset
@@ -14,6 +14,12 @@ SRC := src
 SCRIPTS := scripts
 
 help:
+	@echo "Environment setup:"
+	@echo "  make install          - create virtual environment and install runtime dependencies"
+	@echo "  make install-dev      - create virtual environment and install development dependencies"
+	@echo "  make install-embed    - create virtual environment and install embedding dependencies"
+	@echo "  make sync             - update pip and sync development dependencies"
+	@echo "  make reset-venv       - remove virtual environment and reinstall development dependencies
 	@echo "Development:"
 	@echo "  make format           - format code with black and auto-fix with ruff"
 	@echo "  make lint             - run ruff checks"
@@ -45,6 +51,9 @@ install: venv
 install-dev: venv
 	$(PIP) install -r requirements-dev.txt
 	$(VENV)/bin/pre-commit install
+
+install-embed: venv
+	$(PIP) install -r requirements-embed.txt
 
 sync:
 	$(PIP) install --upgrade pip
