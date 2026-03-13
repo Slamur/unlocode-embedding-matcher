@@ -34,6 +34,7 @@ help:
 	@echo "  make prepare-dataset  - prepare final dataset for retrieval and embedding"
 	@echo "  make build-dataset    - run full dataset pipeline"
 	@echo "  make generate-embeddings - generate embeddings for search texts"
+	@echo "  make build-index      - build FAISS index from embeddings"
 	@echo ""
 	@echo "Utility:"
 	@echo "  make clean            - remove common Python cache files"
@@ -106,6 +107,13 @@ build-dataset: download-dataset ingest-dataset prepare-dataset
 
 generate-embeddings:
 	$(PYTHON) -m $(SCRIPTS).generate_embeddings
+
+# ---------------------
+# Index pipeline
+# ---------------------
+
+build-index:
+	$(PYTHON) -m $(SCRIPTS).build_index
 
 # ---------------------
 # Utility
