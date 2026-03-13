@@ -15,3 +15,15 @@ make install-dev
 ```sh
 make build-dataset
 ```
+
+### Generate embeddings
+
+```sh
+make generate-embeddings
+```
+
+### Build FAISS index
+
+```sh
+make build-index
+```
