@@ -6,7 +6,6 @@ from src.config.paths import (
 )
 from src.embeddings.artifacts import read_and_validate_artifacts
 from src.index.build import build_index
-from src.index.io import save_index
 
 
 def main() -> None:
@@ -21,7 +20,7 @@ def main() -> None:
         return
 
     index, build_result = build_index(embeddings=artifacts.embeddings)
-    save_index(index=index, path=FAISS_INDEX_PATH)
+    index.save(path=FAISS_INDEX_PATH)
 
     print(
         f"Built FAISS index: " f"vectors={build_result.vector_count}, dim={build_result.dimension}"
