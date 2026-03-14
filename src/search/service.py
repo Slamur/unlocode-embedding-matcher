@@ -120,7 +120,7 @@ class SearchService:
 
         for hit in hits:
             existing = best_by_locode.get(hit.locode)
-            if existing is None or hit.score > existing.score:
+            if existing is None or existing.score < hit.score:
                 best_by_locode[hit.locode] = hit
 
         merged = sorted(
