@@ -16,6 +16,12 @@ make install-dev
 make build-dataset
 ```
 
+### Embedding / index dependencies
+
+```sh
+make install-embed
+```
+
 ### Generate embeddings
 
 ```sh
