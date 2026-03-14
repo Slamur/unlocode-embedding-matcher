@@ -41,11 +41,7 @@ def main() -> None:
 
     for i, hit in enumerate(response.hits, start=1):
         print(f"{i}. {hit.locode}  score={hit.score:.4f}")
-        print(f"   alias_text: {hit.alias_text}")
         print(f"   search_text: {hit.search_text}")
-        print(f"   kind: {hit.search_text_kind}")
-        print(f"   country: {hit.country}")
-        print(f"   subdivision: {hit.subdivision_name}")
         print()
 
 

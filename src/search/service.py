@@ -33,11 +33,8 @@ class SearchService:
 
     def _validate_metadata(self) -> None:
         required_columns = {
+            "row_id",
             "locode",
-            "alias_text",
-            "country",
-            "subdivision_name",
-            "search_text_kind",
             "search_text",
         }
 
@@ -101,13 +98,10 @@ class SearchService:
         row = self._metadata.iloc[int(idx)]
 
         return SearchHit(
+            row_id=int(row["row_id"]),
             locode=str(row["locode"]),
             score=float(score),
             search_text=str(row["search_text"]),
-            alias_text=str(row["alias_text"]),
-            country=str(row["country"]),
-            subdivision_name=str(row["subdivision_name"]),
-            search_text_kind=str(row["search_text_kind"]),
         )
 
     def _deduplicate_hits(

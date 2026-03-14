@@ -9,13 +9,10 @@ class SearchRequest:
 
 @dataclass(frozen=True)
 class SearchHit:
+    row_id: int
     locode: str
     score: float
     search_text: str
-    alias_text: str
-    country: str
-    subdivision_name: str
-    search_text_kind: str
 
 
 @dataclass(frozen=True)
