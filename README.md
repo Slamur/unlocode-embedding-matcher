@@ -27,3 +27,11 @@ make generate-embeddings
 ```sh
 make build-index
 ```
+
+## Usage
+
+### CLI Search
+
+```sh
+make search q="..."
+```
