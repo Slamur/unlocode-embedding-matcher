@@ -16,6 +16,12 @@ make install-dev
 make build-dataset
 ```
 
+### Embedding / index dependencies
+
+```sh
+make install-embed
+```
+
 ### Generate embeddings
 
 ```sh
@@ -26,4 +32,12 @@ make generate-embeddings
 
 ```sh
 make build-index
+```
+
+## Usage
+
+### CLI Search
+
+```sh
+make search q="..."
 ```
