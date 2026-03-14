@@ -10,8 +10,10 @@ VENV := .venv
 PIP := $(VENV)/bin/pip
 PYTHON := $(VENV)/bin/python
 
-SRC := src
 SCRIPTS := scripts
+
+SRC := src
+CLI := $(SRC).cli
 
 help:
 	@echo "Environment setup:"
@@ -19,7 +21,8 @@ help:
 	@echo "  make install-dev      - create virtual environment and install development dependencies"
 	@echo "  make install-embed    - create virtual environment and install embedding dependencies"
 	@echo "  make sync             - update pip and sync development dependencies"
-	@echo "  make reset-venv       - remove virtual environment and reinstall development dependencies
+	@echo "  make reset-venv       - remove virtual environment and reinstall development dependencies"
+	@echo ""
 	@echo "Development:"
 	@echo "  make format           - format code with black and auto-fix with ruff"
 	@echo "  make lint             - run ruff checks"
@@ -35,6 +38,9 @@ help:
 	@echo "  make build-dataset    - run full dataset pipeline"
 	@echo "  make generate-embeddings - generate embeddings for search texts"
 	@echo "  make build-index      - build FAISS index from embeddings"
+	@echo ""
+	@echo "CLI:"
+	@echo "  make search q=\"query\" - search for query in the index and print results"
 	@echo ""
 	@echo "Utility:"
 	@echo "  make clean            - remove common Python cache files"
@@ -114,6 +120,13 @@ generate-embeddings:
 
 build-index:
 	$(PYTHON) -m $(SCRIPTS).build_index
+
+# ---------------------
+# CLI
+# ---------------------
+
+search:
+	$(PYTHON) -m $(CLI).search "$(q)"
 
 # ---------------------
 # Utility
