@@ -15,6 +15,8 @@ SCRIPTS := scripts
 SRC := src
 CLI := $(SRC).cli
 
+TESTS := tests
+
 help:
 	@echo "Environment setup:"
 	@echo "  make install          - create virtual environment and install runtime dependencies"
@@ -85,7 +87,7 @@ typecheck:
 	mypy $(SRC)
 
 test:
-	$(PYTHON) -m pytest -v tests
+	$(PYTHON) -m pytest -v $(TESTS)/$(or $(path),)
 
 precommit:
 	pre-commit run --all-files
