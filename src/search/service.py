@@ -7,7 +7,8 @@ from src.config.embeddings import DEFAULT_BATCH_SIZE, MODEL_NAME
 from src.embeddings.model import EmbedderConfig, TextEmbedder
 from src.index.model import VectorIndex
 from src.search.model import SearchHit, SearchRequest, SearchResponse
-from src.search.normalize import build_query_variants
+from src.search.variants import build_query_variants
+from src.text.normalize import normalize_text
 
 
 @dataclass(frozen=True)
@@ -53,8 +54,8 @@ class SearchService:
         if not request.query.strip():
             raise ValueError("Query must not be empty")
 
-        variants = build_query_variants(request.query)
-        normalized_query = variants[0] if variants else ""
+        normalized_query = normalize_text(text=request.query)
+        variants = build_query_variants(normalized_query=normalized_query)
 
         if not variants:
             return SearchResponse(
