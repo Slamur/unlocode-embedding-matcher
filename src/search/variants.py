@@ -50,6 +50,30 @@ def _split_query_parts(normalized_query: str) -> list[str]:
     return parts
 
 
+def _build_variants_from_parts(parts: list[str]) -> list[str]:
+    variants: list[str] = []
+
+    if not parts:
+        return variants
+
+    first, last = parts[0], parts[-1]
+
+    variants.append(f"location {first}")
+    variants.append(f"location {last}")
+
+    if len(parts) > 1:
+        second = parts[1]
+        penultimate = parts[-2]
+
+        variants.append(f"location {second}")
+        variants.append(f"location {second} country {first}")
+
+        variants.append(f"location {penultimate}")
+        variants.append(f"location {penultimate} country {last}")
+
+    return variants
+
+
 def build_query_variants(normalized_query: str) -> list[str]:
     normalized_query = _clean_text(normalized_query)
 
@@ -60,19 +84,7 @@ def build_query_variants(normalized_query: str) -> list[str]:
 
     parts = _split_query_parts(normalized_query)
 
-    if len(parts) == 1:
-        variants.append(f"location {parts[0]}")
-    else:
-        first = parts[0]
-        second = parts[1]
-        penultimate = parts[-2]
-        last = parts[-1]
-
-        variants.append(f"location {first}")
-        variants.append(f"location {second}")
-        variants.append(f"location {second} country {first}")
-        variants.append(f"location {penultimate}")
-        variants.append(f"location {penultimate} country {last}")
-        variants.append(f"location {last}")
+    part_variants = _build_variants_from_parts(parts=parts)
+    variants.extend(part_variants)
 
     return _deduplicate_preserve_order(variants)
