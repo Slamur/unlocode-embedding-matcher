@@ -1,8 +1,16 @@
 import re
+from dataclasses import dataclass
 
 _PART_SPLIT_PATTERN = re.compile(r"[,;/]+")
 _MULTI_SPACE_PATTERN = re.compile(r"\s+")
 _DIGIT_TOKEN_PATTERN = re.compile(r"\S*\d\S*")
+
+
+@dataclass(frozen=True)
+class QueryVariant:
+    text: str
+    kind: str
+    weight: float
 
 
 def _clean_text(text: str) -> str:
@@ -15,18 +23,25 @@ def _remove_tokens_with_digits(text: str) -> str:
     return " ".join(tokens)
 
 
-def _deduplicate_preserve_order(items: list[str]) -> list[str]:
-    seen: set[str] = set()
-    result: list[str] = []
+def _deduplicate_variants(variants: list[QueryVariant]) -> list[QueryVariant]:
+    best_by_text: dict[str, QueryVariant] = {}
+    order: list[str] = []
 
-    for item in items:
-        if not item or item in seen:
+    for variant in variants:
+        if not variant.text:
             continue
 
-        seen.add(item)
-        result.append(item)
+        existing = best_by_text.get(variant.text)
 
-    return result
+        if existing is None:
+            best_by_text[variant.text] = variant
+            order.append(variant.text)
+            continue
+
+        if variant.weight > existing.weight:
+            best_by_text[variant.text] = variant
+
+    return [best_by_text[text] for text in order]
 
 
 def _split_query_parts(normalized_query: str) -> list[str]:
@@ -50,41 +65,82 @@ def _split_query_parts(normalized_query: str) -> list[str]:
     return parts
 
 
-def _build_variants_from_parts(parts: list[str]) -> list[str]:
-    variants: list[str] = []
+def _build_variants_from_parts(parts: list[str]) -> list[QueryVariant]:
+    variants: list[QueryVariant] = []
 
     if not parts:
         return variants
 
-    first, last = parts[0], parts[-1]
+    first = parts[0]
+    last = parts[-1]
 
-    variants.append(f"location {first}")
-    variants.append(f"location {last}")
+    variants.append(
+        QueryVariant(
+            text=f"location {first}",
+            kind="forward_city_first",
+            weight=1.03,
+        )
+    )
+    variants.append(
+        QueryVariant(
+            text=f"location {last}",
+            kind="reverse_city_first",
+            weight=1.03,
+        )
+    )
 
     if len(parts) > 1:
         second = parts[1]
         penultimate = parts[-2]
 
-        variants.append(f"location {second}")
-        variants.append(f"location {second} country {first}")
+        variants.append(
+            QueryVariant(
+                text=f"location {second}",
+                kind="forward_city_second",
+                weight=1.07,
+            )
+        )
+        variants.append(
+            QueryVariant(
+                text=f"location {second} country {first}",
+                kind="forward_city_second_country_first",
+                weight=1.10,
+            )
+        )
 
-        variants.append(f"location {penultimate}")
-        variants.append(f"location {penultimate} country {last}")
+        variants.append(
+            QueryVariant(
+                text=f"location {penultimate}",
+                kind="reverse_city_second",
+                weight=1.07,
+            )
+        )
+        variants.append(
+            QueryVariant(
+                text=f"location {penultimate} country {last}",
+                kind="reverse_city_second_country_first",
+                weight=1.10,
+            )
+        )
 
     return variants
 
 
-def build_query_variants(normalized_query: str) -> list[str]:
+def build_query_variants(normalized_query: str) -> list[QueryVariant]:
     normalized_query = _clean_text(normalized_query)
 
     if not normalized_query:
         return []
 
-    variants: list[str] = [normalized_query]
+    variants: list[QueryVariant] = [
+        QueryVariant(
+            text=normalized_query,
+            kind="full_query",
+            weight=1.00,
+        )
+    ]
 
     parts = _split_query_parts(normalized_query)
+    variants.extend(_build_variants_from_parts(parts=parts))
 
-    part_variants = _build_variants_from_parts(parts=parts)
-    variants.extend(part_variants)
-
-    return _deduplicate_preserve_order(variants)
+    return _deduplicate_variants(variants)
