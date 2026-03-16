@@ -17,8 +17,7 @@ class DummyIndex:
 
 
 class DummyEmbedder:
-    def __init__(self, embeddings: np.ndarray) -> None:
-        self._embeddings = embeddings
+    def __init__(self) -> None:
         self.calls: list[dict] = []
 
     def encode(
@@ -35,7 +34,8 @@ class DummyEmbedder:
                 "normalize_embeddings": normalize_embeddings,
             }
         )
-        return self._embeddings
+
+        return np.array([0.1 * (i + 1) for i in range(len(texts))])
 
 
 @pytest.fixture
@@ -59,17 +59,10 @@ def _build_service(
     metadata: pd.DataFrame,
     scores: np.ndarray,
     ids: np.ndarray,
-    query_embeddings: np.ndarray | None = None,
 ) -> tuple[SearchService, DummyEmbedder]:
     index = DummyIndex(size=len(metadata), scores=scores, ids=ids)
 
-    embedder = DummyEmbedder(
-        embeddings=(
-            query_embeddings
-            if query_embeddings is not None
-            else np.array([[0.1, 0.2, 0.3]], dtype=np.float32)
-        )
-    )
+    embedder = DummyEmbedder()
 
     monkeypatch.setattr(
         "src.search.service.TextEmbedder",
@@ -97,7 +90,7 @@ def test_init_raises_if_metadata_missing_required_columns(
 
     monkeypatch.setattr(
         "src.search.service.TextEmbedder",
-        lambda config: DummyEmbedder(np.array([[0.1, 0.2]], dtype=np.float32)),
+        lambda config: DummyEmbedder(),
     )
 
     with pytest.raises(ValueError, match="Metadata is missing required columns: search_text"):
@@ -116,7 +109,7 @@ def test_init_raises_if_metadata_size_does_not_match_index_size(
 
     monkeypatch.setattr(
         "src.search.service.TextEmbedder",
-        lambda config: DummyEmbedder(np.array([[0.1, 0.2]], dtype=np.float32)),
+        lambda config: DummyEmbedder(),
     )
 
     with pytest.raises(ValueError, match="does not match index size"):
@@ -157,7 +150,7 @@ def test_search_returns_empty_hits_for_query_with_empty_normalized_variant(
     assert embedder.calls == []
 
 
-def test_search_returns_hits(
+def test_search_returns_hits_and_embeds_all_variant_texts(
     monkeypatch: pytest.MonkeyPatch,
     metadata: pd.DataFrame,
 ) -> None:
@@ -176,12 +169,18 @@ def test_search_returns_hits(
 
     assert response.hits[0].row_id == 0
     assert response.hits[0].locode == "KGFRU"
-    assert response.hits[0].score == pytest.approx(0.95)
+    assert response.hits[0].score == pytest.approx(0.95 * 1.10)
     assert response.hits[0].search_text == "bishkek kyrgyzstan"
 
     assert embedder.calls == [
         {
-            "texts": ["bishkek kyrgyzstan"],
+            "texts": [
+                "bishkek kyrgyzstan",
+                "location bishkek",
+                "location kyrgyzstan",
+                "location kyrgyzstan country bishkek",
+                "location bishkek country kyrgyzstan",
+            ],
             "batch_size": service._config.batch_size,
             "normalize_embeddings": False,
         }
@@ -205,7 +204,7 @@ def test_search_ignores_negative_ids(
     assert response.hits[0].locode == "KZALA"
 
 
-def test_search_deduplicates_by_locode_and_keeps_best_score(
+def test_search_deduplicates_by_locode_and_keeps_best_weighted_score(
     monkeypatch: pytest.MonkeyPatch,
     metadata: pd.DataFrame,
 ) -> None:
@@ -220,7 +219,7 @@ def test_search_deduplicates_by_locode_and_keeps_best_score(
 
     assert [hit.locode for hit in response.hits] == ["KGFRU", "KZALA"]
     assert response.hits[0].row_id == 2
-    assert response.hits[0].score == pytest.approx(0.95)
+    assert response.hits[0].score == pytest.approx(0.95 * 1.03)
     assert response.hits[0].search_text == "frunze kyrgyzstan"
 
 
