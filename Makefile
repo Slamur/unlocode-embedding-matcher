@@ -12,6 +12,9 @@ PYTHON := $(VENV)/bin/python
 
 SCRIPTS := scripts
 PIPELINE := $(SCRIPTS).pipeline
+EVALUATION := $(SCRIPTS).evaluation
+
+RESOURCES := resources
 
 SRC := src
 CLI := $(SRC).cli
@@ -130,6 +133,14 @@ build-index:
 
 search:
 	$(PYTHON) -m $(CLI).search "$(q)"
+
+
+# ---------------------
+# Evaluation
+# ---------------------
+
+eval-search:
+	$(PYTHON) -m $(EVALUATION).evaluate_search --cases "$(RESOURCES)/search_cases.yaml"
 
 # ---------------------
 # Utility
