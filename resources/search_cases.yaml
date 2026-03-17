@@ -1,0 +1,146 @@
+cases:
+
+# ----------------
+# Russia
+# ----------------
+
+- query: "Russia, Samara, Novo-Sadovaya 12"
+  expected_locode: "RUKUF"
+
+- query: "Samara Novo-Sadovaya 153/16"
+  expected_locode: "RUKUF"
+
+- query: "Russia Samara ul Novo Sadovaya 25 apt 7"
+  expected_locode: "RUKUF"
+
+- query: "Russia Moscow Tverskaya 7"
+  expected_locode: "RUMOW"
+
+- query: "Nevsky 25 Saint Petersburg Russia"
+  expected_locode: "RULED"
+
+- query: "Russia Vladivostok Svetlanskaya 15"
+  expected_locode: "RUVVO"
+
+
+# ----------------
+# USA
+# ----------------
+
+- query: "United States New York Broadway 1"
+  expected_locode: "USNYC"
+
+- query: "Broadway 1 New York USA"
+  expected_locode: "USNYC"
+
+- query: "Los Angeles CA Sunset Blvd 20"
+  expected_locode: "USLAX"
+
+- query: "Seattle WA 98101 Pine Street"
+  expected_locode: "USSEA"
+
+- query: "Houston TX Main Street 100"
+  expected_locode: "USHOU"
+
+- query: "Chicago Illinois 233 S Wacker Dr"
+  expected_locode: "USCHI"
+
+
+# ----------------
+# Western Europe
+# ----------------
+
+- query: "Germany Hamburg Hafenstrasse 12"
+  expected_locode: "DEHAM"
+
+- query: "Hafenstrasse Hamburg Germany"
+  expected_locode: "DEHAM"
+
+- query: "Netherlands Rotterdam port area"
+  expected_locode: "NLRTM"
+
+- query: "Amsterdam NL Damrak 5"
+  expected_locode: "NLAMS"
+
+- query: "Spain Barcelona La Rambla 50"
+  expected_locode: "ESBCN"
+
+- query: "France Paris Rue de Rivoli 10"
+  expected_locode: "FRPAR"
+
+- query: "Italy Milan Via Torino 8"
+  expected_locode: "ITMIL"
+
+
+# ----------------
+# Asia
+# ----------------
+
+- query: "Tokyo Japan Shinjuku 3-5-1"
+  expected_locode: "JPTYO"
+
+- query: "Japan Tokyo Minato district"
+  expected_locode: "JPTYO"
+
+- query: "Yokohama Japan Naka Ward"
+  expected_locode: "JPYOK"
+
+- query: "Shanghai China Pudong Airport Road"
+  expected_locodes:
+    - "CNSHA"
+    - "CNSGH"
+
+- query: "Beijing China Chaoyang district"
+  expected_locode: "CNBJS"
+
+- query: "Singapore 10 Marina Blvd"
+  expected_locode: "SGSIN"
+
+- query: "Busan South Korea Haeundae beach road"
+  expected_locode: "KRPUS"
+
+- query: "Dubai UAE Sheikh Zayed Road 50"
+  expected_locode: "AEDXB"
+
+
+# ----------------
+# Central Asia
+# ----------------
+
+- query: "Bishkek Kyrgyzstan Chuy Avenue 120"
+  expected_locodes:
+    - "KGFRU"
+    - "KGBIS"
+
+- query: "Chuy avenue Bishkek KG"
+  expected_locodes:
+    - "KGFRU"
+    - "KGBIS"
+
+- query: "Almaty Kazakhstan Dostyk Ave 48"
+  expected_locode: "KZALA"
+
+- query: "Tashkent Uzbekistan Amir Temur street"
+  expected_locode: "UZTAS"
+
+
+# ----------------
+# Africa
+# ----------------
+
+- query: "Cape Town South Africa Long Street 20"
+  expected_locode: "ZACPT"
+
+- query: "Durban South Africa harbor"
+  expected_locode: "ZADUR"
+
+- query: "Lagos Nigeria Victoria Island"
+  expected_locodes:
+    - "NGLOS"
+    - "NGLAG"
+
+- query: "Mombasa Kenya port road"
+  expected_locode: "KEMBA"
+
+- query: "Casablanca Morocco port area"
+  expected_locode: "MACAS"
