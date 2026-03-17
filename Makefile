@@ -11,6 +11,7 @@ PIP := $(VENV)/bin/pip
 PYTHON := $(VENV)/bin/python
 
 SCRIPTS := scripts
+PIPELINE := $(SCRIPTS).pipeline
 
 SRC := src
 CLI := $(SRC).cli
@@ -99,13 +100,13 @@ check: lint typecheck test
 # ---------------------
 
 download-dataset:
-	$(PYTHON) -m $(SCRIPTS).download_dataset
+	$(PYTHON) -m $(PIPELINE).download_dataset
 
 ingest-dataset:
-	$(PYTHON) -m $(SCRIPTS).ingest_dataset
+	$(PYTHON) -m $(PIPELINE).ingest_dataset
 
 prepare-dataset:
-	$(PYTHON) -m $(SCRIPTS).prepare_dataset
+	$(PYTHON) -m $(PIPELINE).prepare_dataset
 
 build-dataset: download-dataset ingest-dataset prepare-dataset
 
@@ -114,14 +115,14 @@ build-dataset: download-dataset ingest-dataset prepare-dataset
 # ---------------------
 
 generate-embeddings:
-	$(PYTHON) -m $(SCRIPTS).generate_embeddings
+	$(PYTHON) -m $(PIPELINE).generate_embeddings
 
 # ---------------------
 # Index pipeline
 # ---------------------
 
 build-index:
-	$(PYTHON) -m $(SCRIPTS).build_index
+	$(PYTHON) -m $(PIPELINE).build_index
 
 # ---------------------
 # CLI
