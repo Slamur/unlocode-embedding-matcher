@@ -40,9 +40,7 @@ def main() -> None:
     print()
 
     for i, hit in enumerate(response.hits, start=1):
-        print(f"{i}. {hit.locode}  score={hit.score:.4f}")
-        print(f"   search_text: {hit.search_text}")
-        print()
+        print(f"{i}. {hit}")
 
 
 if __name__ == "__main__":

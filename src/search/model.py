@@ -14,6 +14,9 @@ class SearchHit:
     score: float
     search_text: str
 
+    def __str__(self) -> str:
+        return f"[{self.locode}] score={self.score:.4f}\n" f"  {self.search_text}"
+
 
 @dataclass(frozen=True)
 class SearchResponse:

@@ -15,6 +15,7 @@ from src.text.normalize import normalize_text
 class SearchConfig:
     model_name: str = MODEL_NAME
     batch_size: int = DEFAULT_BATCH_SIZE
+    aggregation_alpha: float = 0.05
 
 
 @dataclass(frozen=True)
@@ -92,12 +93,13 @@ class SearchService:
             )
             raw_hits.extend(variant_hits)
 
-        merged_hits = self._deduplicate_hits(hits=raw_hits, top_k=request.top_k)
+        aggregated_hits = self._aggregate_hits(hits=raw_hits)
+        top_hits = self._top_hits(hits=aggregated_hits, top_k=request.top_k)
 
         return SearchResponse(
             query=request.query,
             normalized_query=normalized_query,
-            hits=merged_hits,
+            hits=top_hits,
         )
 
     def _build_variant_hits(
@@ -138,31 +140,38 @@ class SearchService:
             variant_weight=variant.weight,
         )
 
-    def _deduplicate_hits(
+    def _aggregate_hits(
         self,
         hits: list[VariantSearchHit],
+    ) -> list[SearchHit]:
+        hits_by_locode: dict[str, list[VariantSearchHit]] = {}
+
+        for hit in hits:
+            hits_by_locode.setdefault(hit.locode, []).append(hit)
+
+        aggregated_hits: list[SearchHit] = []
+
+        for locode, locode_hits in hits_by_locode.items():
+            best_hit = max(locode_hits, key=lambda hit: hit.score)
+            vote_count = len(locode_hits)
+            aggregated_score = best_hit.score + self._config.aggregation_alpha * vote_count
+
+            aggregated_hits.append(
+                SearchHit(
+                    row_id=best_hit.row_id,
+                    locode=locode,
+                    score=aggregated_score,
+                    search_text=best_hit.search_text,
+                )
+            )
+
+        return aggregated_hits
+
+    def _top_hits(
+        self,
+        hits: list[SearchHit],
         *,
         top_k: int,
     ) -> list[SearchHit]:
-        best_by_locode: dict[str, VariantSearchHit] = {}
-
-        for hit in hits:
-            existing = best_by_locode.get(hit.locode)
-            if existing is None or existing.score < hit.score:
-                best_by_locode[hit.locode] = hit
-
-        merged = sorted(
-            best_by_locode.values(),
-            key=lambda hit: hit.score,
-            reverse=True,
-        )
-
-        return [
-            SearchHit(
-                row_id=hit.row_id,
-                locode=hit.locode,
-                score=hit.score,
-                search_text=hit.search_text,
-            )
-            for hit in merged[:top_k]
-        ]
+        hits.sort(key=lambda hit: hit.score, reverse=True)
+        return hits[:top_k]
