@@ -33,6 +33,7 @@ def test_search_returns_empty_hits_for_query_with_empty_normalized_variant(
 
 def test_search_ignores_negative_ids(
     metadata: pd.DataFrame,
+    embedder: DummyEmbedder,
     build_index,
     build_service,
 ) -> None:
@@ -45,6 +46,7 @@ def test_search_ignores_negative_ids(
     service = build_service(
         metadata=metadata,
         index=index,
+        embedder=embedder,
     )
 
     request = SearchRequest(query="almaty", top_k=2)
