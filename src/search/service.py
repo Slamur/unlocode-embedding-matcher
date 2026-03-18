@@ -37,11 +37,14 @@ class SearchService:
         index: VectorIndex,
         metadata: pd.DataFrame,
         config: SearchConfig | None = None,
+        embedder: TextEmbedder | None = None,
     ) -> None:
         self._index = index
         self._metadata = metadata.reset_index(drop=True).copy()
         self._config = config or SearchConfig()
-        self._embedder = TextEmbedder(EmbedderConfig(model_name=self._config.model_name))
+        self._embedder = embedder or TextEmbedder(
+            EmbedderConfig(model_name=self._config.model_name)
+        )
 
         self._validate_metadata()
 
