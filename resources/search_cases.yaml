@@ -20,7 +20,9 @@ cases:
   expected_locode: "RULED"
 
 - query: "Russia Vladivostok Svetlanskaya 15"
-  expected_locode: "RUVVO"
+  expected_locodes:
+    - "RUVVO"
+    - "RUFIP"
 
 
 # ----------------
@@ -89,6 +91,7 @@ cases:
   expected_locodes:
     - "CNSHA"
     - "CNSGH"
+    - "CNPDG"
 
 - query: "Beijing China Chaoyang district"
   expected_locode: "CNBJS"

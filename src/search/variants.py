@@ -113,7 +113,7 @@ def _build_variants_from_parts(parts: list[str]) -> list[QueryVariant]:
             QueryVariant(
                 text=f"location {first} country {second}",
                 kind="forward_city_first_country_second",
-                weight=1.09,
+                weight=1.10,
             )
         )
 
@@ -137,7 +137,7 @@ def _build_variants_from_parts(parts: list[str]) -> list[QueryVariant]:
             QueryVariant(
                 text=f"location {last} country {penultimate}",
                 kind="reverse_city_first_country_second",
-                weight=1.09,
+                weight=1.10,
             )
         )
 

@@ -6,7 +6,7 @@ import yaml
 
 from src.config.paths import FAISS_INDEX_PATH, SEARCH_TEXTS_METADATA_PATH
 from src.index.model import VectorIndex
-from src.search.model import SearchRequest
+from src.search.model import SearchHit, SearchRequest
 from src.search.service import SearchService
 from src.utils.files import read_parquet
 
@@ -21,8 +21,45 @@ class EvalCase:
 class EvalResult:
     query: str
     expected_locodes: list[str]
-    actual_locodes: list[str]
+    actual_hits: list[SearchHit]
     found_rank: int | None
+
+    @property
+    def actual_locodes(self) -> list[str]:
+        return [hit.locode for hit in self.actual_hits]
+
+    def status(self) -> str:
+        if self.found_rank == 1:
+            return "OK"
+        if self.found_rank is None:
+            return "MISS"
+        return "PARTIAL"
+
+    def to_pretty_string(self, index: int | None = None) -> str:
+        lines: list[str] = []
+
+        prefix = f"{index}. " if index is not None else ""
+        lines.append(f"{prefix}[{self.status()}] {self.query}")
+        lines.append(f"   expected: {', '.join(self.expected_locodes)}")
+
+        if self.found_rank is None:
+            lines.append("   found at: not found")
+        else:
+            lines.append(f"   found at: rank {self.found_rank}")
+
+        if not self.actual_hits:
+            lines.append("   actual: <no hits>")
+            return "\n".join(lines)
+
+        expected_set = set(self.expected_locodes)
+
+        lines.append("   actual:")
+        for rank, hit in enumerate(self.actual_hits, start=1):
+            marker = " *" if hit.locode in expected_set else ""
+            lines.append(f"     {rank}. {hit.locode}  score={hit.score:.4f}{marker}")
+            lines.append(f"        search_text: {hit.search_text}")
+
+        return "\n".join(lines)
 
 
 def _parse_args() -> argparse.Namespace:
@@ -142,7 +179,7 @@ def _evaluate_case(
     return EvalResult(
         query=case.query,
         expected_locodes=case.expected_locodes,
-        actual_locodes=actual_locodes,
+        actual_hits=response.hits,
         found_rank=found_rank,
     )
 
@@ -180,20 +217,7 @@ def _print_summary(results: list[EvalResult]) -> None:
     print("----------------")
 
     for index, result in enumerate(results, start=1):
-        status = _extract_status(result)
-        print(f"{index}. [{status}] {result.query}")
-        print(f"   expected: {_format_expected(result.expected_locodes)}")
-
-        if result.found_rank is None:
-            print("   found at: not found")
-        else:
-            print(f"   found at: rank {result.found_rank}")
-
-        print(
-            f"   actual: {', '.join(result.actual_locodes)
-                          if result.actual_locodes
-                          else '<no hits>'}"
-        )
+        print(result.to_pretty_string(index=index))
         print()
 
 
